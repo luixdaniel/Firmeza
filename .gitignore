@@ -1,0 +1,150 @@
+# .gitignore para solución .NET (ASP.NET Core) con Rider/VS y frontend opcional
+# Fuente base: VisualStudio.gitignore + añadidos prácticos
+
+##############################
+# SO / Editor
+##############################
+# macOS / Windows
+.DS_Store
+Thumbs.db
+
+# IDE y editores
+.vs/
+.idea/
+*.sln.iml
+*.DotSettings.user
+
+# VS Code (si no quieres compartir config del workspace, descomenta)
+# .vscode/
+
+##############################
+# Artefactos de build
+##############################
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Tt]est[Rr]esult*/
+[Tt]est[Rr]esults/
+[Rr]elease*/
+[Dd]ebug*/
+[Bb]uild/
+[Bb]ld/
+[xX]64/
+[xX]86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]64?/
+out/
+artifacts/
+
+# Publicaciones
+[Pp]ublish*/
+**/wwwroot/dist/
+
+##############################
+# Usuario / configuración local
+##############################
+*.suo
+*.user
+*.userosscache
+*.userprefs
+*.sln.docstates
+
+# Lanzadores locales
+# launchSettings.json suele versionarse (útil para depuración)
+# Properties/launchSettings.json
+
+##############################
+# Paquetes / herramientas
+##############################
+# NuGet
+*.nupkg
+*.snupkg
+# Paquetes globales de dotnet/tools
+.store/
+.tools/
+# Resharper / Rider
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+# NCrunch
+_NCrunch_*/
+.*crunch*.
+
+# Cobertura / análisis
+*.coverage
+*.coveragexml
+coverage/
+.coverage/
+.nyc_output/
+.sonarqube/
+
+##############################
+# Node / frontend (si usas SPA o tooling)
+##############################
+node_modules/
+.packages/
+.pnp.cjs
+.pnp.loader.mjs
+.pnp.data.json
+.pnpm-store/
+# Salidas comunes
+.dist/
+dist/
+build/
+# Lockfiles suelen COMMITTEARSE; no los ignores por defecto
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# LibMan: si usas libman para restaurar, puedes ignorar librerías restauradas
+# Descomenta la siguiente línea si tienes libman.json y no quieres versionar lib restauradas
+# wwwroot/lib/
+
+##############################
+# Docker / contenedores
+##############################
+# .docker/ tmp
+.docker/
+# Archivos de entorno locales
+.env
+.env.*
+
+##############################
+# Configuración / secretos
+##############################
+# Normalmente se versionan appsettings.json y appsettings.Development.json.
+# Ignora variantes locales específicas del dev.
+appsettings.*.Local.json
+secrets.json
+user-secrets.xml
+UserSecretsId-*.json
+
+##############################
+# BBDD locales (SQL Server LocalDB)
+##############################
+*.mdf
+*.ldf
+*.ndf
+
+##############################
+# Varios
+##############################
+# Archivos temporales
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# JetBrains cache adicional
+.idea/**/shelf/
+.idea/**/workspace.xml
+.idea/**/httpRequests/
+.idea/**/dataSources/
+
+# Rider DotCover
+*.dotCover
