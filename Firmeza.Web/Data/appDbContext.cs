@@ -1,3 +1,4 @@
+using Firmeza.Web.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Firmeza.Web.Data
@@ -10,6 +11,8 @@ namespace Firmeza.Web.Data
         }
 
         // Aquí defines tus tablas (DbSets)
-        // public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<Producto> Productos { get; set; } = null!;
+        public DbSet<Categoria> Categorias { get; set; } = null!;
+
     }
 }
