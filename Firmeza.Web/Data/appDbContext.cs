@@ -13,6 +13,8 @@ namespace Firmeza.Web.Data
         // Aquí defines tus tablas (DbSets)
         public DbSet<Producto> Productos { get; set; } = null!;
         public DbSet<Categoria> Categorias { get; set; } = null!;
+        public DbSet<Venta> Ventas { get; set; } = null!;
+        public DbSet<DetalleDeVenta> DetallesDeVenta { get; set; } = null!;
 
     }
 }
