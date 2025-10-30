@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Finanza.Web", "Finanza.Web\Finanza.Web.csproj", "{916F4FDA-6592-4302-9E88-234AB640B508}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Firmeza.Web", "Firmeza.Web\Firmeza.Web.csproj", "{916F4FDA-6592-4302-9E88-234AB640B508}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
