@@ -1,0 +1,41 @@
+@model Firmeza.Web.Data.Entities.Venta
+@{
+    ViewData["Title"] = "Detalle de Venta";
+}
+<h2>Detalle de Venta</h2>
+<div class="mb-3">
+    <strong>Factura:</strong> @Model.NumeroFactura
+</div>
+<div class="mb-3">
+    <strong>Cliente:</strong> @Model.Cliente
+</div>
+<div class="mb-3">
+    <strong>Total:</strong> @Model.Total.ToString("C")
+</div>
+@if (Model.Detalles?.Any() == true)
+{
+    <h4>Items</h4>
+    <table class="table table-sm">
+        <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio</th>
+            <th>Subtotal</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var d in Model.Detalles)
+        {
+            <tr>
+                <td>@d.Producto?.Nombre</td>
+                <td>@d.Cantidad</td>
+                <td>@d.PrecioUnitario.ToString("C")</td>
+                <td>@d.Subtotal.ToString("C")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+<a class="btn btn-secondary" asp-action="Index">Volver</a>
+

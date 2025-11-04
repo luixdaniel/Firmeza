@@ -1,0 +1,12 @@
+@model Firmeza.Web.Data.Entities.Venta
+@{
+    ViewData["Title"] = "Eliminar Venta";
+}
+<h2>Eliminar Venta</h2>
+<div class="alert alert-warning">¿Confirma eliminar la venta @Model.NumeroFactura?</div>
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a class="btn btn-secondary" asp-action="Index">Cancelar</a>
+</form>
+

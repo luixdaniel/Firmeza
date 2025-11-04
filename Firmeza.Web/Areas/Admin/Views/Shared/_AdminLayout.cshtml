@@ -1,0 +1,63 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<Firmeza.Web.Identity.ApplicationUser> SignInManager
+@inject UserManager<Firmeza.Web.Identity.ApplicationUser> UserManager
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - Admin</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body { overflow-x: hidden; }
+        .sidebar {
+            min-height: 100vh;
+            background-color: #0d6efd;
+            color: #fff;
+        }
+        .sidebar a { color: #fff; text-decoration: none; }
+        .sidebar .nav-link.active { background: rgba(255,255,255,.2); border-radius: .375rem; }
+        .content { padding: 1.5rem; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-12 col-md-3 col-lg-2 d-md-block sidebar p-3">
+            <h4 class="mb-4">Admin</h4>
+            <ul class="nav nav-pills flex-column gap-1">
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="Dashboard"?"active":"")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="Producto"?"active":"")" asp-area="" asp-controller="Producto" asp-action="Index">Productos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="Clientes"?"active":"")" asp-area="Admin" asp-controller="Clientes" asp-action="Index">Clientes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="Ventas"?"active":"")" asp-area="Admin" asp-controller="Ventas" asp-action="Index">Ventas</a>
+                </li>
+            </ul>
+            <hr/>
+            <div>
+                @if (SignInManager.IsSignedIn(User)) {
+                    <span class="d-block">@User.Identity!.Name</span>
+                    <form method="post" asp-area="Identity" asp-page="/Account/Logout">
+                        <button type="submit" class="btn btn-light btn-sm mt-2">Cerrar sesión</button>
+                    </form>
+                } else {
+                    <a class="btn btn-light btn-sm" asp-area="Identity" asp-page="/Account/Login">Iniciar sesión</a>
+                }
+            </div>
+        </nav>
+        <main class="col-12 col-md-9 ms-sm-auto col-lg-10 content">
+            <partial name="_Alerts" />
+            @RenderBody()
+        </main>
+    </div>
+</div>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+@RenderSection("Scripts", required: false)
+</body>
+</html>

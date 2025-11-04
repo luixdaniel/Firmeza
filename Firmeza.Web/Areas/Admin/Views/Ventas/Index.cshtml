@@ -1,0 +1,38 @@
+@model IEnumerable<Firmeza.Web.Data.Entities.Venta>
+@{
+    ViewData["Title"] = "Ventas";
+}
+<h2>Ventas</h2>
+<p>
+    <a class="btn btn-primary" asp-action="Create">Nueva venta</a>
+</p>
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Fecha</th>
+        <th>Nro Factura</th>
+        <th>Cliente</th>
+        <th>Total</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var v in Model)
+    {
+        <tr>
+            <td>@v.Id</td>
+            <td>@v.FechaVenta</td>
+            <td>@v.NumeroFactura</td>
+            <td>@v.Cliente</td>
+            <td>@v.Total.ToString("C")</td>
+            <td>
+                <a asp-action="Details" asp-route-id="@v.Id">Detalles</a> |
+                <a asp-action="Edit" asp-route-id="@v.Id">Editar</a> |
+                <a asp-action="Delete" asp-route-id="@v.Id">Eliminar</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+

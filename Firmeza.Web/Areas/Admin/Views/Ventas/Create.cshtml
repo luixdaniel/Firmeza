@@ -1,0 +1,25 @@
+@model Firmeza.Web.Data.Entities.Venta
+@{
+    ViewData["Title"] = "Crear Venta";
+}
+<h2>Crear Venta</h2>
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label asp-for="Cliente" class="form-label"></label>
+        <input asp-for="Cliente" class="form-control" />
+        <span asp-validation-for="Cliente" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="MetodoPago" class="form-label"></label>
+        <input asp-for="MetodoPago" class="form-control" />
+        <span asp-validation-for="MetodoPago" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Total" class="form-label"></label>
+        <input asp-for="Total" class="form-control" />
+        <span asp-validation-for="Total" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a class="btn btn-secondary" asp-action="Index">Volver</a>
+</form>
+

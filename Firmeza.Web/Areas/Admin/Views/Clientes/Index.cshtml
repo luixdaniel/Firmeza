@@ -1,0 +1,30 @@
+@model IEnumerable<Firmeza.Web.Identity.ApplicationUser>
+@{
+    ViewData["Title"] = "Clientes";
+}
+<partial name="_Alerts" />
+<h2>Clientes</h2>
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">No hay clientes registrados aún.</div>
+}
+else
+{
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Email</th>
+        <th>Nombre</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var c in Model)
+    {
+        <tr>
+            <td>@c.Email</td>
+            <td>@c.NombreCompleto</td>
+        </tr>
+    }
+    </tbody>
+</table>
+}

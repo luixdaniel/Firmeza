@@ -1,0 +1,36 @@
+@model Firmeza.Web.Models.Admin.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Panel de Administración";
+}
+<div class="container-fluid">
+    <div class="row g-3">
+        <div class="col-12">
+            <h2 class="mb-3">Panel de administración</h2>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Productos</h5>
+                    <p class="display-6 fw-bold">@Model.TotalProductos</p>
+                    <a class="btn btn-primary btn-sm" asp-area="" asp-controller="Producto" asp-action="Index">Ver productos</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Clientes</h5>
+                    <p class="display-6 fw-bold">@Model.TotalClientes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Ventas</h5>
+                    <p class="display-6 fw-bold">@Model.TotalVentas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -18,9 +18,17 @@ namespace Firmeza.Web.Controllers
         // GET: Producto
         public async Task<IActionResult> Index()
         {
-            var query = _context.Set<Producto>().Include(p => p.Categoria);
-            var list = await query.ToListAsync();
-            return View(model: list);
+            try
+            {
+                var query = _context.Set<Producto>().Include(p => p.Categoria);
+                var list = await query.ToListAsync();
+                return View(model: list);
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "No se pudieron cargar los productos. Intenta nuevamente.";
+                return View(model: new List<Producto>());
+            }
         }
 
         // GET: Producto/Details/5
@@ -30,16 +38,22 @@ namespace Firmeza.Web.Controllers
             {
                 return NotFound();
             }
-
-            var producto = await _context.Set<Producto>()
-                .Include(p => p.Categoria)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (producto == null)
+            try
             {
-                return NotFound();
+                var producto = await _context.Set<Producto>()
+                    .Include(p => p.Categoria)
+                    .FirstOrDefaultAsync(m => m.Id == id);
+                if (producto == null)
+                {
+                    return NotFound();
+                }
+                return View(model: producto);
             }
-
-            return View(model: producto);
+            catch (Exception)
+            {
+                TempData["Error"] = "No se pudo cargar el detalle del producto.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // GET: Producto/Create
@@ -50,20 +64,34 @@ namespace Firmeza.Web.Controllers
         }
 
         // POST: Producto/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Nombre,Descripcion,Precio,Stock,CategoriaId")] Producto producto)
         {
-            if (ModelState.IsValid)
+            try
             {
+                if (!ModelState.IsValid)
+                {
+                    ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
+                    return View(model: producto);
+                }
                 _context.Add(producto);
                 await _context.SaveChangesAsync();
+                TempData["Success"] = "Producto creado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
-            return View(model: producto);
+            catch (DbUpdateException)
+            {
+                TempData["Error"] = "No se pudo guardar el producto. Verifica los datos e intenta nuevamente.";
+                ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
+                return View(model: producto);
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "Ocurrió un error inesperado al crear el producto.";
+                ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
+                return View(model: producto);
+            }
         }
 
         // GET: Producto/Edit/5
@@ -73,19 +101,24 @@ namespace Firmeza.Web.Controllers
             {
                 return NotFound();
             }
-
-            var producto = await _context.Set<Producto>().FindAsync(id);
-            if (producto == null)
+            try
             {
-                return NotFound();
+                var producto = await _context.Set<Producto>().FindAsync(id);
+                if (producto == null)
+                {
+                    return NotFound();
+                }
+                ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
+                return View(model: producto);
             }
-            ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
-            return View(model: producto);
+            catch (Exception)
+            {
+                TempData["Error"] = "No se pudo cargar el producto a editar.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Producto/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Nombre,Descripcion,Precio,Stock,CategoriaId")] Producto producto)
@@ -95,28 +128,43 @@ namespace Firmeza.Web.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(producto);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ProductoExists(producto.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
+                return View(model: producto);
+            }
+
+            try
+            {
+                _context.Update(producto);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Producto actualizado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
-            return View(model: producto);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ProductoExists(producto.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    TempData["Error"] = "Conflicto de concurrencia al actualizar el producto.";
+                    throw;
+                }
+            }
+            catch (DbUpdateException)
+            {
+                TempData["Error"] = "No se pudo actualizar el producto.";
+                ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
+                return View(model: producto);
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "Ocurrió un error inesperado al actualizar el producto.";
+                ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
+                return View(model: producto);
+            }
         }
 
         // GET: Producto/Delete/5
@@ -127,15 +175,23 @@ namespace Firmeza.Web.Controllers
                 return NotFound();
             }
 
-            var producto = await _context.Set<Producto>()
-                .Include(p => p.Categoria)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (producto == null)
+            try
             {
-                return NotFound();
-            }
+                var producto = await _context.Set<Producto>()
+                    .Include(p => p.Categoria)
+                    .FirstOrDefaultAsync(m => m.Id == id);
+                if (producto == null)
+                {
+                    return NotFound();
+                }
 
-            return View(model: producto);
+                return View(model: producto);
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "No se pudo cargar el producto a eliminar.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Producto/Delete/5
@@ -143,14 +199,22 @@ namespace Firmeza.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var producto = await _context.Set<Producto>().FindAsync(id);
-            if (producto != null)
+            try
             {
-                _context.Set<Producto>().Remove(producto);
+                var producto = await _context.Set<Producto>().FindAsync(id);
+                if (producto != null)
+                {
+                    _context.Set<Producto>().Remove(producto);
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = "Producto eliminado.";
+                }
+                return RedirectToAction(nameof(Index));
             }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            catch (Exception)
+            {
+                TempData["Error"] = "No se pudo eliminar el producto.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         private bool ProductoExists(int id)

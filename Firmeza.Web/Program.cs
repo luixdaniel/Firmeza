@@ -1,5 +1,12 @@
 using Firmeza.Web.Data;
+using Firmeza.Web.Data.Seed;
+using Firmeza.Web.Identity;
+using Firmeza.Web.Interfaces.Repositories;
+using Firmeza.Web.Repositories;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,22 +14,45 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Missing connection string 'DefaultConnection'")));
 
-// Add services to the container.
+// 🔹 Configurar Identity con ApplicationUser y UI por defecto
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = false;
+})
+.AddDefaultTokenProviders()
+.AddDefaultUI();
+
+// Registrar Stores de Identity explícitamente
+builder.Services.AddScoped<IUserStore<ApplicationUser>, UserStore<ApplicationUser, IdentityRole, AppDbContext>>();
+builder.Services.AddScoped<IRoleStore<IdentityRole>, RoleStore<IdentityRole, AppDbContext>>();
+
+// 🔹 Configurar cookies (login y acceso denegado)
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Identity/Account/Login";
+    options.AccessDeniedPath = "/Home/AccessDenied";
+});
+
+// 🔹 Repositorios
+builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
+
+// MVC y Razor Pages (Identity UI)
 builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
-// Seeding de datos iniciales (solo en Development)
-if (app.Environment.IsDevelopment())
+// Migrar BD y sembrar datos al iniciar
+using (var scope = app.Services.CreateScope())
 {
-    using (var scope = app.Services.CreateScope())
+    var services = scope.ServiceProvider;
+    var db = services.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+    await SeedData.InitializeAsync(services);
+
+    // Seeding de datos de ejemplo (si deseas mantenerlo y solo en Development)
+    if (app.Environment.IsDevelopment())
     {
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        
-        // Aplicar migraciones pendientes
-        db.Database.Migrate();
-        
-        // Agregar datos de ejemplo si no existen
         if (!db.Set<Firmeza.Web.Data.Entities.Categoria>().Any())
         {
             var categoriaGeneral = new Firmeza.Web.Data.Entities.Categoria
@@ -32,7 +62,7 @@ if (app.Environment.IsDevelopment())
             };
             db.Set<Firmeza.Web.Data.Entities.Categoria>().Add(categoriaGeneral);
             db.SaveChanges();
-            
+
             var productoEjemplo = new Firmeza.Web.Data.Entities.Producto
             {
                 Nombre = "Producto de Ejemplo",
@@ -59,10 +89,19 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
+
+// Rutas de áreas (Admin) y por defecto
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Identity UI (Razor Pages)
+app.MapRazorPages();
 
 app.Run();
