@@ -1,25 +1,39 @@
-# .gitignore para solución .NET (ASP.NET Core) con Rider/VS y frontend opcional
-# Fuente base: VisualStudio.gitignore + añadidos prácticos
+########################
+# .gitignore para ASP.NET Core 8 (Firmeza.Web)
+########################
 
-##############################
-# SO / Editor
-##############################
-# macOS / Windows
+########################
+# Sistema Operativo
+########################
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+.windows
 
-# IDE y editores
-.vs/
+########################
+# IDEs / Editores
+########################
+.vscode/
 .idea/
+*.code-workspace
 *.sln.iml
+*.DotSettings
 *.DotSettings.user
+.vs/
+.vsconfig
+*.jfm
+rider.project.model.nuget.info
+rider.project.restore.info
 
-# VS Code (si no quieres compartir config del workspace, descomenta)
-# .vscode/
-
-##############################
-# Artefactos de build
-##############################
+########################
+# Compilación y Output
+########################
+bin/
+obj/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
@@ -28,123 +42,124 @@ Thumbs.db
 [Tt]est[Rr]esults/
 [Rr]elease*/
 [Dd]ebug*/
-[Bb]uild/
-[Bb]ld/
-[xX]64/
-[xX]86/
-[Ww][Ii][Nn]32/
-[Aa][Rr][Mm]64?/
-out/
 artifacts/
+out/
+*.trx
 
-# Publicaciones
+########################
+# Publicación
+########################
 [Pp]ublish*/
-**/wwwroot/dist/
+[Pp]ublished*/
+.publish/
+PublishProfiles/
+launchSettings.json
 
-##############################
-# Usuario / configuración local
-##############################
+########################
+# NuGet
+########################
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+.nuget/packages/
+*.nuspec
+
+########################
+# Entidades de usuario
+########################
 *.suo
 *.user
 *.userosscache
 *.userprefs
 *.sln.docstates
+.vs/slnx.sqlite
 
-# Lanzadores locales
-# launchSettings.json suele versionarse (útil para depuración)
-# Properties/launchSettings.json
-
-##############################
-# Paquetes / herramientas
-##############################
-# NuGet
-*.nupkg
-*.snupkg
-# Paquetes globales de dotnet/tools
-.store/
-.tools/
-# Resharper / Rider
-_ReSharper*/
-*.[Rr]e[Ss]harper
-
-# NCrunch
-_NCrunch_*/
-.*crunch*.
-
-# Cobertura / análisis
-*.coverage
-*.coveragexml
+########################
+# Análisis y Cobertura
+########################
 coverage/
 .coverage/
-.nyc_output/
+*.coverage
+*.coveragexml
 .sonarqube/
+_coverage/
+OpenCover/
 
-##############################
-# Node / frontend (si usas SPA o tooling)
-##############################
-node_modules/
-.packages/
-.pnp.cjs
-.pnp.loader.mjs
-.pnp.data.json
-.pnpm-store/
-# Salidas comunes
-.dist/
-dist/
-build/
-# Lockfiles suelen COMMITTEARSE; no los ignores por defecto
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
+########################
+# Rider (ReSharper)
+########################
+.idea/
+_ReSharper*/
+*.ReSharper
+*.ReSharper.user
+.ReSharperCache/
+.ReSharper*
 
-# LibMan: si usas libman para restaurar, puedes ignorar librerías restauradas
-# Descomenta la siguiente línea si tienes libman.json y no quieres versionar lib restauradas
-# wwwroot/lib/
+########################
+# NCrunch
+########################
+_NCrunch_*/
+.*crunch*.local.xml
+nCrunchTemp_*
 
-##############################
-# Docker / contenedores
-##############################
-# .docker/ tmp
-.docker/
-# Archivos de entorno locales
-.env
-.env.*
-
-##############################
-# Configuración / secretos
-##############################
-# Normalmente se versionan appsettings.json y appsettings.Development.json.
-# Ignora variantes locales específicas del dev.
-appsettings.*.Local.json
-secrets.json
-user-secrets.xml
-UserSecretsId-*.json
-
-##############################
-# BBDD locales (SQL Server LocalDB)
-##############################
+########################
+# Base de Datos
+########################
+*.db
 *.mdf
 *.ldf
-*.ndf
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
 
-##############################
-# Varios
-##############################
-# Archivos temporales
-*.tmp
-*.temp
-*.bak
-*.swp
-*.swo
+########################
+# Archivos de configuración local/secretos
+########################
+appsettings.local.json
+appsettings.*.local.json
+.env
+.env.local
+secrets.json
+user-secrets-id
 
-# Logs
-*.log
+########################
+# Frontend / Node
+########################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp
+.pnp.js
+dist/
+.dist/
+build/
 
-# JetBrains cache adicional
-.idea/**/shelf/
-.idea/**/workspace.xml
-.idea/**/httpRequests/
-.idea/**/dataSources/
+########################
+# Archivos de Sistema Temporal
+########################
+.tmp/
+.temp/
+tmp/
+temp/
 
-# Rider DotCover
-*.dotCover
+########################
+# Misceláneos
+########################
+*.rar
+*.zip
+*.7z
+*.7zip
+*.iso
+*.dmg
+.vscode-extensions/
+
+# EditorConfig cache
+.editorconfig.cache
+
+# Certificados SSL locales
+*.pfx
+*.pem
+

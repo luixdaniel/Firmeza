@@ -66,29 +66,65 @@ namespace Firmeza.Web.Controllers
         // POST: Producto/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Nombre,Descripcion,Precio,Stock,CategoriaId")] Producto producto)
+        public async Task<IActionResult> Create([Bind("Nombre,Descripcion,Precio,Stock,CategoriaId")] Producto producto)
         {
             try
             {
+                // Validaciones adicionales
+                if (string.IsNullOrWhiteSpace(producto.Nombre))
+                {
+                    ModelState.AddModelError("Nombre", "El nombre es requerido.");
+                }
+
+                if (string.IsNullOrWhiteSpace(producto.Descripcion))
+                {
+                    ModelState.AddModelError("Descripcion", "La descripción es requerida.");
+                }
+
+                if (producto.Precio <= 0)
+                {
+                    ModelState.AddModelError("Precio", "El precio debe ser mayor a 0.");
+                }
+
+                if (producto.Stock < 0)
+                {
+                    ModelState.AddModelError("Stock", "El stock no puede ser negativo.");
+                }
+
+                if (producto.CategoriaId <= 0)
+                {
+                    ModelState.AddModelError("CategoriaId", "Debe seleccionar una categoría.");
+                }
+
                 if (!ModelState.IsValid)
                 {
                     ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
                     return View(model: producto);
                 }
+
+                // Verificar que la categoría existe
+                var categoriaExists = await _context.Set<Categoria>().AnyAsync(c => c.Id == producto.CategoriaId);
+                if (!categoriaExists)
+                {
+                    TempData["Error"] = "La categoría seleccionada no existe.";
+                    ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
+                    return View(model: producto);
+                }
+
                 _context.Add(producto);
                 await _context.SaveChangesAsync();
                 TempData["Success"] = "Producto creado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException ex)
             {
-                TempData["Error"] = "No se pudo guardar el producto. Verifica los datos e intenta nuevamente.";
+                TempData["Error"] = $"No se pudo guardar el producto. Error: {ex.InnerException?.Message}";
                 ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
                 return View(model: producto);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                TempData["Error"] = "Ocurrió un error inesperado al crear el producto.";
+                TempData["Error"] = $"Ocurrió un error inesperado: {ex.Message}";
                 ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
                 return View(model: producto);
             }
@@ -128,6 +164,32 @@ namespace Firmeza.Web.Controllers
                 return NotFound();
             }
 
+            // Validaciones adicionales
+            if (string.IsNullOrWhiteSpace(producto.Nombre))
+            {
+                ModelState.AddModelError("Nombre", "El nombre es requerido.");
+            }
+
+            if (string.IsNullOrWhiteSpace(producto.Descripcion))
+            {
+                ModelState.AddModelError("Descripcion", "La descripción es requerida.");
+            }
+
+            if (producto.Precio <= 0)
+            {
+                ModelState.AddModelError("Precio", "El precio debe ser mayor a 0.");
+            }
+
+            if (producto.Stock < 0)
+            {
+                ModelState.AddModelError("Stock", "El stock no puede ser negativo.");
+            }
+
+            if (producto.CategoriaId <= 0)
+            {
+                ModelState.AddModelError("CategoriaId", "Debe seleccionar una categoría.");
+            }
+
             if (!ModelState.IsValid)
             {
                 ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
@@ -136,6 +198,15 @@ namespace Firmeza.Web.Controllers
 
             try
             {
+                // Verificar que la categoría existe
+                var categoriaExists = await _context.Set<Categoria>().AnyAsync(c => c.Id == producto.CategoriaId);
+                if (!categoriaExists)
+                {
+                    TempData["Error"] = "La categoría seleccionada no existe.";
+                    ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
+                    return View(model: producto);
+                }
+
                 _context.Update(producto);
                 await _context.SaveChangesAsync();
                 TempData["Success"] = "Producto actualizado correctamente.";
@@ -153,15 +224,15 @@ namespace Firmeza.Web.Controllers
                     throw;
                 }
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException ex)
             {
-                TempData["Error"] = "No se pudo actualizar el producto.";
+                TempData["Error"] = $"No se pudo actualizar el producto. Error: {ex.InnerException?.Message}";
                 ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
                 return View(model: producto);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                TempData["Error"] = "Ocurrió un error inesperado al actualizar el producto.";
+                TempData["Error"] = $"Ocurrió un error inesperado: {ex.Message}";
                 ViewData["CategoriaId"] = new SelectList(_context.Set<Categoria>(), "Id", "Nombre", producto.CategoriaId);
                 return View(model: producto);
             }
