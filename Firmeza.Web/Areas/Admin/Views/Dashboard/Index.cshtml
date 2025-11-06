@@ -12,7 +12,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Productos</h5>
                     <p class="display-6 fw-bold">@Model.TotalProductos</p>
-                    <a class="btn btn-primary btn-sm" asp-area="" asp-controller="Producto" asp-action="Index">Ver productos</a>
+                    <a class="btn btn-primary btn-sm" asp-area="Admin" asp-controller="Productos" asp-action="Index">Ver productos</a>
                 </div>
             </div>
         </div>
@@ -21,6 +21,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Clientes</h5>
                     <p class="display-6 fw-bold">@Model.TotalClientes</p>
+                    <a class="btn btn-primary btn-sm" asp-area="Admin" asp-controller="Clientes" asp-action="Index">Ver clientes</a>
                 </div>
             </div>
         </div>
@@ -29,6 +30,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Ventas</h5>
                     <p class="display-6 fw-bold">@Model.TotalVentas</p>
+                    <a class="btn btn-primary btn-sm" asp-area="Admin" asp-controller="Ventas" asp-action="Index">Ver ventas</a>
                 </div>
             </div>
         </div>

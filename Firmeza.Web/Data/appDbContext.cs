@@ -15,6 +15,7 @@ namespace Firmeza.Web.Data
         // Aquí defines tus tablas (DbSets)
         public DbSet<Producto> Productos { get; set; } = null!;
         public DbSet<Categoria> Categorias { get; set; } = null!;
+        public DbSet<Cliente> Clientes { get; set; } = null!;
         public DbSet<Venta> Ventas { get; set; } = null!;
         public DbSet<DetalleDeVenta> DetallesDeVenta { get; set; } = null!;
 
@@ -23,6 +24,7 @@ namespace Firmeza.Web.Data
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Producto>().ToTable("Productos");
             modelBuilder.Entity<Categoria>().ToTable("Categorias");
+            modelBuilder.Entity<Cliente>().ToTable("Clientes");
             modelBuilder.Entity<Venta>().ToTable("Ventas");
             modelBuilder.Entity<DetalleDeVenta>().ToTable("DetallesDeVenta");
         }

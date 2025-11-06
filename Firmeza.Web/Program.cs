@@ -10,11 +10,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔹 Agregar la conexión con Supabase (PostgreSQL)
+// Agregar la conexión con Supabase (PostgreSQL)
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Missing connection string 'DefaultConnection'")));
 
-// 🔹 Configurar Identity con ApplicationUser y UI por defecto
+// Configurar Identity con ApplicationUser y UI por defecto
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
@@ -26,14 +26,14 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 builder.Services.AddScoped<IUserStore<ApplicationUser>, UserStore<ApplicationUser, IdentityRole, AppDbContext>>();
 builder.Services.AddScoped<IRoleStore<IdentityRole>, RoleStore<IdentityRole, AppDbContext>>();
 
-// 🔹 Configurar cookies (login y acceso denegado)
+// Configurar cookies (login y acceso denegado)
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Identity/Account/Login";
     options.AccessDeniedPath = "/Home/AccessDenied";
 });
 
-// 🔹 Repositorios
+// Repositorios
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
 
 // MVC y Razor Pages (Identity UI)
@@ -53,14 +53,14 @@ using (var scope = app.Services.CreateScope())
     // Seeding de datos de ejemplo (si deseas mantenerlo y solo en Development)
     if (app.Environment.IsDevelopment())
     {
-        if (!db.Set<Firmeza.Web.Data.Entities.Categoria>().Any())
+        if (!db.Categorias.Any())
         {
             var categoriaGeneral = new Firmeza.Web.Data.Entities.Categoria
             {
                 Nombre = "General",
                 Descripcion = "Categoría general de productos"
             };
-            db.Set<Firmeza.Web.Data.Entities.Categoria>().Add(categoriaGeneral);
+            db.Categorias.Add(categoriaGeneral);
             db.SaveChanges();
 
             var productoEjemplo = new Firmeza.Web.Data.Entities.Producto
@@ -71,7 +71,7 @@ using (var scope = app.Services.CreateScope())
                 Stock = 10,
                 CategoriaId = categoriaGeneral.Id
             };
-            db.Set<Firmeza.Web.Data.Entities.Producto>().Add(productoEjemplo);
+            db.Productos.Add(productoEjemplo);
             db.SaveChanges();
         }
     }
