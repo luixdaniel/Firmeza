@@ -1,4 +1,4 @@
-@model Firmeza.Web.Data.Entities.Producto
+@model Firmeza.Web.Areas.Admin.ViewModels.ProductViewModel
 @{
     ViewData["Title"] = "Detalles del Producto";
 }
@@ -35,7 +35,7 @@
                 </dd>
                 
                 <dt class="col-sm-3">Categoría</dt>
-                <dd class="col-sm-9">@Model.Categoria?.Nombre</dd>
+                <dd class="col-sm-9">@Model.CategoriaNombre</dd>
             </dl>
         </div>
     </div>

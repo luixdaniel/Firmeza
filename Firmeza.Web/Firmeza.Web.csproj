@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <RootNamespace>Firmeza.Web</RootNamespace>
+        <UserSecretsId>2928f69c-df2c-4827-ac75-eacbcb2a764c</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -34,10 +35,6 @@
       </PackageReference>
       <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Services\" />
     </ItemGroup>
 
     <ItemGroup>

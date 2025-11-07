@@ -2,7 +2,9 @@ using Firmeza.Web.Data;
 using Firmeza.Web.Data.Seed;
 using Firmeza.Web.Identity;
 using Firmeza.Web.Interfaces.Repositories;
+using Firmeza.Web.Interfaces.Services;
 using Firmeza.Web.Repositories;
+using Firmeza.Web.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +37,9 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 // Repositorios
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
+
+// Servicios
+builder.Services.AddScoped<IProductoService, ProductoService>();
 
 // MVC y Razor Pages (Identity UI)
 builder.Services.AddControllersWithViews();

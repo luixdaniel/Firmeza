@@ -1,4 +1,4 @@
-@model IEnumerable<Firmeza.Web.Data.Entities.Producto>
+@model IEnumerable<Firmeza.Web.Areas.Admin.ViewModels.ProductViewModel>
 @{
     ViewData["Title"] = "Productos";
 }
@@ -55,7 +55,7 @@ else
                                 <span class="badge bg-success">@item.Stock</span>
                             }
                         </td>
-                        <td>@item.Categoria?.Nombre</td>
+                        <td>@item.CategoriaNombre</td>
                         <td class="text-center">
                             <div class="btn-group" role="group">
                                 <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="Ver detalles">
