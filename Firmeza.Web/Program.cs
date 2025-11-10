@@ -37,6 +37,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 // Repositorios
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
+builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
 
 // Servicios
 builder.Services.AddScoped<IProductoService, ProductoService>();

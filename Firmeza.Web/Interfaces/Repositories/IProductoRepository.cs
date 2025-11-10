@@ -2,11 +2,16 @@ using Firmeza.Web.Data.Entities;
 
 namespace Firmeza.Web.Interfaces.Repositories;
 
-public interface IProductoRepository
+/// <summary>
+/// Repositorio específico para Productos, hereda de IRepository genérico
+/// </summary>
+public interface IProductoRepository : IRepository<Producto>
 {
-    Task<IEnumerable<Producto>> GetAllAsync();
-    Task<Producto?> GetByIdAsync(int id);
-    Task AddAsync(Producto producto);
-    Task UpdateAsync(Producto producto);
-    Task DeleteAsync(int id);
+    // Consultas específicas de Producto
+    Task<IEnumerable<Producto>> GetByCategoriaAsync(int categoriaId);
+    Task<IEnumerable<Producto>> GetByStockBajoAsync(int minStock = 10);
+    Task<IEnumerable<Producto>> SearchByNombreAsync(string nombre);
+    
+    // Verificaciones específicas de Producto
+    Task<bool> NombreExistsAsync(string nombre, int? excludeId = null);
 }

@@ -45,12 +45,5 @@
       <_ContentIncludedByDefault Remove="Views\Producto\Index.cshtml" />
     </ItemGroup>
 
-    <ItemGroup>
-      <AdditionalFiles Include="Areas\Admin\Producto\Create.cshtml" />
-      <AdditionalFiles Include="Areas\Admin\Producto\Delete.cshtml" />
-      <AdditionalFiles Include="Areas\Admin\Producto\Details.cshtml" />
-      <AdditionalFiles Include="Areas\Admin\Producto\Edit.cshtml" />
-      <AdditionalFiles Include="Areas\Admin\Producto\Index.cshtml" />
-    </ItemGroup>
 
 </Project>

@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] - Admin</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
         body { 
@@ -61,25 +61,25 @@
             <ul class="nav flex-column">
                 <li class="nav-item">
                     <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="Dashboard"?"active":"")" 
-                       href="/Admin/Dashboard/Index">
+                       asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
                         🏠 Inicio
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="Productos"?"active":"")" 
-                       href="/Admin/Productos/Index">
+                       asp-area="Admin" asp-controller="Productos" asp-action="Index">
                         📦 Productos
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="Clientes"?"active":"")" 
-                       href="/Admin/Clientes/Index">
+                       asp-area="Admin" asp-controller="Clientes" asp-action="Index">
                         👥 Clientes
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="Ventas"?"active":"")" 
-                       href="/Admin/Ventas/Index">
+                       asp-area="Admin" asp-controller="Ventas" asp-action="Index">
                         💰 Ventas
                     </a>
                 </li>
@@ -111,8 +111,8 @@
         </main>
     </div>
 </div>
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 <script>
     // Asegurar que los enlaces funcionen correctamente
     document.addEventListener('DOMContentLoaded', function() {
