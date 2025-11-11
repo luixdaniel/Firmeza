@@ -46,9 +46,12 @@ else
                         <td>@v.Cliente</td>
                         <td><strong>@v.Total.ToString("C")</strong></td>
                         <td>
-                            <a asp-action="Details" asp-route-id="@v.Id" class="btn btn-sm btn-info">Detalles</a>
-                            <a asp-action="Edit" asp-route-id="@v.Id" class="btn btn-sm btn-warning">Editar</a>
-                            <a asp-action="Delete" asp-route-id="@v.Id" class="btn btn-sm btn-danger">Eliminar</a>
+                            <a asp-action="Details" asp-route-id="@v.Id" class="btn btn-sm btn-info" title="Ver detalles">
+                                <i class="bi bi-eye"></i> Detalles
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@v.Id" class="btn btn-sm btn-danger" title="Eliminar venta">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </a>
                         </td>
                     </tr>
                 }

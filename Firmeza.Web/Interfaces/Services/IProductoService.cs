@@ -1,12 +1,9 @@
 using Firmeza.Web.Data.Entities;
+
 namespace Firmeza.Web.Interfaces.Services;
-public interface IProductoService
+
+public interface IProductoService : IGenericService<Producto>
 {
-    Task<IEnumerable<Producto>> GetAllProductosAsync();
-    Task<Producto?> GetProductoByIdAsync(int id);
-    Task<bool> CreateProductoAsync(Producto producto);
-    Task<bool> UpdateProductoAsync(Producto producto);
-    Task<bool> DeleteProductoAsync(int id);
-    Task<bool> ProductoExistsAsync(int id);
+    // Métodos específicos adicionales para productos
     Task<bool> CategoriaExistsAsync(int categoriaId);
 }

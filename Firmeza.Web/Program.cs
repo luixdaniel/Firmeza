@@ -38,9 +38,14 @@ builder.Services.ConfigureApplicationCookie(options =>
 // Repositorios
 builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+builder.Services.AddScoped<IVentaRepository, VentaRepository>();
 
 // Servicios
 builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<IVentaService, VentaService>();
 
 // MVC y Razor Pages (Identity UI)
 builder.Services.AddControllersWithViews();

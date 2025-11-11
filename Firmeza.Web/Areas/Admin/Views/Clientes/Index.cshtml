@@ -1,30 +1,79 @@
-@model IEnumerable<Firmeza.Web.Identity.ApplicationUser>
+@model IEnumerable<Firmeza.Web.Data.Entities.Cliente>
 @{
     ViewData["Title"] = "Clientes";
 }
+
 <partial name="_Alerts" />
-<h2>Clientes</h2>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>Clientes</h2>
+        <p class="text-muted">Gestión de clientes registrados</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">
+        <i class="bi bi-plus-circle"></i> Nuevo Cliente
+    </a>
+</div>
+
 @if (Model == null || !Model.Any())
 {
-    <div class="alert alert-info">No hay clientes registrados aún.</div>
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <i class="bi bi-info-circle"></i> No hay clientes registrados aún.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 }
 else
 {
-<table class="table table-striped">
-    <thead>
-    <tr>
-        <th>Email</th>
-        <th>Nombre</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var c in Model)
-    {
-        <tr>
-            <td>@c.Email</td>
-            <td>@c.NombreCompleto</td>
-        </tr>
-    }
-    </tbody>
-</table>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Documento</th>
+                    <th>Teléfono</th>
+                    <th>Ciudad</th>
+                    <th>Estado</th>
+                    <th>Fecha Registro</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cliente in Model)
+                {
+                    <tr>
+                        <td>@cliente.Id</td>
+                        <td>@cliente.NombreCompleto</td>
+                        <td>@cliente.Email</td>
+                        <td>@cliente.Documento</td>
+                        <td>@cliente.Telefono</td>
+                        <td>@cliente.Ciudad</td>
+                        <td>
+                            @if (cliente.Activo)
+                            {
+                                <span class="badge bg-success">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Inactivo</span>
+                            }
+                        </td>
+                        <td>@cliente.FechaRegistro.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@cliente.Id" class="btn btn-sm btn-info" title="Ver detalles">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@cliente.Id" class="btn btn-sm btn-warning" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@cliente.Id" class="btn btn-sm btn-danger" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }

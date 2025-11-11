@@ -6,33 +6,62 @@ using Microsoft.EntityFrameworkCore;
 namespace Firmeza.Web.Repositories;
 
 /// <summary>
-/// Repositorio de Categorías, hereda funcionalidad base de Repository genérico
+/// Repositorio de Categorías
 /// </summary>
-public class CategoriaRepository : Repository<Categoria>, ICategoriaRepository
+public class CategoriaRepository : ICategoriaRepository
 {
-    public CategoriaRepository(AppDbContext context) : base(context)
+    private readonly AppDbContext _context;
+
+    public CategoriaRepository(AppDbContext context)
     {
+        _context = context;
     }
 
-    // Consultas específicas
-    public async Task<Categoria?> GetByNombreAsync(string nombre)
+    public async Task<IEnumerable<Categoria>> GetAllAsync()
     {
-        return await Context.Categorias
-            .FirstOrDefaultAsync(c => c.Nombre.ToLower() == nombre.ToLower());
-    }
-
-    public async Task<IEnumerable<Categoria>> GetCategoriasConProductosAsync()
-    {
-        return await Context.Categorias
+        return await _context.Categorias
             .Include(c => c.Productos)
             .AsNoTracking()
             .ToListAsync();
     }
 
-    // Verificaciones específicas
-    public async Task<bool> NombreExistsAsync(string nombre, int? excludeId = null)
+    public async Task<Categoria?> GetByIdAsync(int id)
     {
-        var query = Context.Categorias.Where(c => c.Nombre.ToLower() == nombre.ToLower());
+        return await _context.Categorias
+            .Include(c => c.Productos)
+            .FirstOrDefaultAsync(c => c.Id == id);
+    }
+
+    public async Task AddAsync(Categoria categoria)
+    {
+        await _context.Categorias.AddAsync(categoria);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateAsync(Categoria categoria)
+    {
+        _context.Categorias.Update(categoria);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var categoria = await _context.Categorias.FindAsync(id);
+        if (categoria != null)
+        {
+            _context.Categorias.Remove(categoria);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task<bool> ExistsAsync(int id)
+    {
+        return await _context.Categorias.AnyAsync(c => c.Id == id);
+    }
+
+    public async Task<bool> ExistsByNombreAsync(string nombre, int? excludeId = null)
+    {
+        var query = _context.Categorias.Where(c => c.Nombre.ToLower() == nombre.ToLower());
         
         if (excludeId.HasValue)
         {
@@ -42,9 +71,16 @@ public class CategoriaRepository : Repository<Categoria>, ICategoriaRepository
         return await query.AnyAsync();
     }
 
+    // Métodos adicionales específicos
+    public async Task<Categoria?> GetByNombreAsync(string nombre)
+    {
+        return await _context.Categorias
+            .FirstOrDefaultAsync(c => c.Nombre.ToLower() == nombre.ToLower());
+    }
+
     public async Task<bool> TieneProductosAsync(int categoriaId)
     {
-        return await Context.Productos.AnyAsync(p => p.CategoriaId == categoriaId);
+        return await _context.Productos.AnyAsync(p => p.CategoriaId == categoriaId);
     }
 }
 

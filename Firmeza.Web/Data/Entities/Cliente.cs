@@ -41,6 +41,9 @@ public class Cliente
     
     public bool Activo { get; set; } = true;
     
+    // Relación con ApplicationUser (opcional, puede ser null para clientes sin cuenta)
+    public string? ApplicationUserId { get; set; }
+    
     // Propiedad calculada para nombre completo
     public string NombreCompleto => $"{Nombre} {Apellido}";
     

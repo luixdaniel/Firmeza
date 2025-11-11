@@ -5,70 +5,48 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Firmeza.Web.Repositories;
 
-/// <summary>
-/// Repositorio de Productos, hereda funcionalidad base de Repository genérico
-/// </summary>
-public class ProductoRepository : Repository<Producto>, IProductoRepository
+public class ProductoRepository : IProductoRepository
 {
-    public ProductoRepository(AppDbContext context) : base(context)
+    private readonly AppDbContext _context;
+
+    public ProductoRepository(AppDbContext context)
     {
+        _context = context;
     }
 
-    // Sobrescribir métodos base para incluir relaciones
-    public override async Task<IEnumerable<Producto>> GetAllAsync()
+    public async Task<IEnumerable<Producto>> GetAllAsync()
     {
-        return await Context.Productos
+        return await _context.Set<Producto>()
             .Include(p => p.Categoria)
-            .AsNoTracking()
             .ToListAsync();
     }
 
-    public override async Task<Producto?> GetByIdAsync(int id)
+    public async Task<Producto?> GetByIdAsync(int id)
     {
-        return await Context.Productos
+        return await _context.Set<Producto>()
             .Include(p => p.Categoria)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
-    // Consultas específicas
-    public async Task<IEnumerable<Producto>> GetByCategoriaAsync(int categoriaId)
+    public async Task AddAsync(Producto producto)
     {
-        return await Context.Productos
-            .Include(p => p.Categoria)
-            .Where(p => p.CategoriaId == categoriaId)
-            .AsNoTracking()
-            .ToListAsync();
+        await _context.Set<Producto>().AddAsync(producto);
+        await _context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<Producto>> GetByStockBajoAsync(int minStock = 10)
+    public async Task UpdateAsync(Producto producto)
     {
-        return await Context.Productos
-            .Include(p => p.Categoria)
-            .Where(p => p.Stock <= minStock)
-            .OrderBy(p => p.Stock)
-            .AsNoTracking()
-            .ToListAsync();
+        _context.Set<Producto>().Update(producto);
+        await _context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<Producto>> SearchByNombreAsync(string nombre)
+    public async Task DeleteAsync(int id)
     {
-        return await Context.Productos
-            .Include(p => p.Categoria)
-            .Where(p => EF.Functions.Like(p.Nombre, $"%{nombre}%"))
-            .AsNoTracking()
-            .ToListAsync();
-    }
-
-    // Verificaciones específicas
-    public async Task<bool> NombreExistsAsync(string nombre, int? excludeId = null)
-    {
-        var query = Context.Productos.Where(p => p.Nombre.ToLower() == nombre.ToLower());
-        
-        if (excludeId.HasValue)
+        var entity = await _context.Set<Producto>().FindAsync(id);
+        if (entity != null)
         {
-            query = query.Where(p => p.Id != excludeId.Value);
+            _context.Set<Producto>().Remove(entity);
+            await _context.SaveChangesAsync();
         }
-        
-        return await query.AnyAsync();
     }
 }

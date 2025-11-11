@@ -1,8 +1,8 @@
-using Firmeza.Web.Data;
+using Firmeza.Web.Areas.Admin.ViewModels;
 using Firmeza.Web.Data.Entities;
+using Firmeza.Web.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Firmeza.Web.Areas.Admin.Controllers;
 
@@ -10,80 +10,271 @@ namespace Firmeza.Web.Areas.Admin.Controllers;
 [Authorize(Roles = "Administrador")]
 public class VentasController : Controller
 {
-    private readonly AppDbContext _context;
+    private readonly IVentaService _ventaService;
+    private readonly IProductoService _productoService;
+    private readonly IClienteService _clienteService;
 
-    public VentasController(AppDbContext context)
+    public VentasController(IVentaService ventaService, IProductoService productoService, IClienteService clienteService)
     {
-        _context = context;
+        _ventaService = ventaService;
+        _productoService = productoService;
+        _clienteService = clienteService;
     }
 
     public async Task<IActionResult> Index()
     {
-        var ventas = await _context.Ventas.AsNoTracking().ToListAsync();
-        return View(ventas);
+        try
+        {
+            var ventas = await _ventaService.GetAllAsync();
+            return View(ventas);
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al cargar ventas: {ex.Message}";
+            return View(new List<Venta>());
+        }
     }
 
     public async Task<IActionResult> Details(int id)
     {
-        var venta = await _context.Ventas
-            .Include(v => v.Detalles)
-            .ThenInclude(d => d.Producto)
-            .FirstOrDefaultAsync(v => v.Id == id);
-        if (venta == null) return NotFound();
-        return View(venta);
+        try
+        {
+            var venta = await _ventaService.GetByIdWithDetailsAsync(id);
+            if (venta == null)
+            {
+                TempData["ErrorMessage"] = "Venta no encontrada.";
+                return RedirectToAction(nameof(Index));
+            }
+            return View(venta);
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al cargar detalles: {ex.Message}";
+            return RedirectToAction(nameof(Index));
+        }
     }
 
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
-        return View(new Venta { FechaVenta = DateTime.UtcNow });
+        try
+        {
+            var productos = await _productoService.GetAllAsync();
+            var productosDisponibles = productos.Where(p => p.Stock > 0).ToList();
+
+            var clientes = await _clienteService.GetAllAsync();
+
+            var viewModel = new CreateVentaViewModel
+            {
+                ProductosDisponibles = productosDisponibles,
+                Vendedor = User.Identity?.Name ?? "Sistema"
+            };
+
+            ViewBag.Clientes = clientes;
+            return View(viewModel);
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al cargar formulario: {ex.Message}";
+            return RedirectToAction(nameof(Index));
+        }
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Venta venta)
+    public async Task<IActionResult> Create(CreateVentaViewModel viewModel)
     {
-        if (!ModelState.IsValid) return View(venta);
-        _context.Ventas.Add(venta);
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
-    }
+        try
+        {
+            // Log para debugging
+            Console.WriteLine($"=== POST Create Ventas ===");
+            Console.WriteLine($"Cliente: {viewModel.Cliente ?? "NULL"}");
+            Console.WriteLine($"MetodoPago: {viewModel.MetodoPago ?? "NULL"}");
+            Console.WriteLine($"Detalles Count: {viewModel.Detalles?.Count ?? 0}");
+            
+            if (viewModel.Detalles != null)
+            {
+                foreach (var d in viewModel.Detalles)
+                {
+                    Console.WriteLine($"  - ProductoId: {d.ProductoId}, Cantidad: {d.Cantidad}, Precio: {d.PrecioUnitario}");
+                }
+            }
 
-    public async Task<IActionResult> Edit(int id)
-    {
-        var venta = await _context.Ventas.FindAsync(id);
-        if (venta == null) return NotFound();
-        return View(venta);
-    }
+            // Filtrar detalles válidos (eliminar entradas vacías)
+            if (viewModel.Detalles != null)
+            {
+                viewModel.Detalles = viewModel.Detalles.Where(d => d.ProductoId > 0 && d.Cantidad > 0).ToList();
+                Console.WriteLine($"Detalles después de filtrar: {viewModel.Detalles.Count}");
+            }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, Venta venta)
-    {
-        if (id != venta.Id) return NotFound();
-        if (!ModelState.IsValid) return View(venta);
-        _context.Update(venta);
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+            // Validar que haya al menos un detalle
+            if (viewModel.Detalles == null || viewModel.Detalles.Count == 0)
+            {
+                Console.WriteLine("ERROR: No hay detalles");
+                TempData["ErrorMessage"] = "Debe agregar al menos un producto a la venta.";
+                var productos = await _productoService.GetAllAsync();
+                viewModel.ProductosDisponibles = productos.Where(p => p.Stock > 0).ToList();
+                var clientes = await _clienteService.GetAllAsync();
+                ViewBag.Clientes = clientes;
+                return View(viewModel);
+            }
+
+            // Validar campos requeridos
+            if (string.IsNullOrWhiteSpace(viewModel.Cliente))
+            {
+                TempData["ErrorMessage"] = "Debe seleccionar un cliente.";
+                var productos = await _productoService.GetAllAsync();
+                viewModel.ProductosDisponibles = productos.Where(p => p.Stock > 0).ToList();
+                var clientes = await _clienteService.GetAllAsync();
+                ViewBag.Clientes = clientes;
+                return View(viewModel);
+            }
+
+            // Validar que el cliente existe en la base de datos
+            var todosLosClientes = await _clienteService.GetAllAsync();
+            var clienteExiste = todosLosClientes.Any(c => c.Nombre == viewModel.Cliente);
+            if (!clienteExiste)
+            {
+                TempData["ErrorMessage"] = "El cliente seleccionado no existe. Por favor, seleccione un cliente válido de la lista.";
+                var productos = await _productoService.GetAllAsync();
+                viewModel.ProductosDisponibles = productos.Where(p => p.Stock > 0).ToList();
+                var clientes = await _clienteService.GetAllAsync();
+                ViewBag.Clientes = clientes;
+                return View(viewModel);
+            }
+
+            if (string.IsNullOrWhiteSpace(viewModel.MetodoPago))
+            {
+                TempData["ErrorMessage"] = "El método de pago es requerido.";
+                var productos = await _productoService.GetAllAsync();
+                viewModel.ProductosDisponibles = productos.Where(p => p.Stock > 0).ToList();
+                var clientes = await _clienteService.GetAllAsync();
+                ViewBag.Clientes = clientes;
+                return View(viewModel);
+            }
+
+            // Crear la venta con sus detalles
+            var venta = new Venta
+            {
+                Cliente = viewModel.Cliente,
+                MetodoPago = viewModel.MetodoPago,
+                Vendedor = viewModel.Vendedor ?? User.Identity?.Name ?? "Sistema",
+                FechaVenta = DateTime.Now,
+                Estado = "Completada",
+                Detalles = new List<DetalleDeVenta>()
+            };
+
+            // Agregar los detalles
+            foreach (var detalle in viewModel.Detalles)
+            {
+                venta.Detalles.Add(new DetalleDeVenta
+                {
+                    ProductoId = detalle.ProductoId,
+                    Cantidad = detalle.Cantidad,
+                    PrecioUnitario = detalle.PrecioUnitario
+                });
+            }
+
+            // Crear la venta (esto también actualiza el stock)
+            await _ventaService.CrearVentaConDetallesAsync(venta);
+
+            TempData["SuccessMessage"] = "Venta creada exitosamente.";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al crear la venta: {ex.Message}";
+            var productos = await _productoService.GetAllAsync();
+            viewModel.ProductosDisponibles = productos.Where(p => p.Stock > 0).ToList();
+            var clientes = await _clienteService.GetAllAsync();
+            ViewBag.Clientes = clientes;
+            return View(viewModel);
+        }
     }
 
     public async Task<IActionResult> Delete(int id)
     {
-        var venta = await _context.Ventas.FindAsync(id);
-        if (venta == null) return NotFound();
-        return View(venta);
+        try
+        {
+            var venta = await _ventaService.GetByIdWithDetailsAsync(id);
+            if (venta == null)
+            {
+                TempData["ErrorMessage"] = "Venta no encontrada.";
+                return RedirectToAction(nameof(Index));
+            }
+            return View(venta);
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error: {ex.Message}";
+            return RedirectToAction(nameof(Index));
+        }
     }
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
-        var venta = await _context.Ventas.FindAsync(id);
-        if (venta != null)
+        try
         {
-            _context.Ventas.Remove(venta);
-            await _context.SaveChangesAsync();
+            var result = await _ventaService.DeleteAsync(id);
+            if (result)
+            {
+                TempData["SuccessMessage"] = "Venta eliminada exitosamente y stock restaurado.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "No se pudo eliminar la venta.";
+            }
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al eliminar: {ex.Message}";
         }
         return RedirectToAction(nameof(Index));
+    }
+
+    // API para obtener datos de producto
+    [HttpGet]
+    public async Task<IActionResult> GetProducto(int id)
+    {
+        try
+        {
+            var producto = await _productoService.GetByIdAsync(id);
+            if (producto == null)
+                return NotFound();
+
+            return Json(new
+            {
+                id = producto.Id,
+                nombre = producto.Nombre,
+                precio = producto.Precio,
+                stock = producto.Stock
+            });
+        }
+        catch
+        {
+            return BadRequest();
+        }
+    }
+
+    // Método de prueba para verificar POST
+    [HttpPost]
+    public IActionResult TestPost(string cliente, string metodoPago, List<DetalleVentaViewModel> detalles)
+    {
+        Console.WriteLine($"=== TEST POST ===");
+        Console.WriteLine($"Cliente: {cliente}");
+        Console.WriteLine($"MetodoPago: {metodoPago}");
+        Console.WriteLine($"Detalles: {detalles?.Count ?? 0}");
+        
+        if (detalles != null)
+        {
+            foreach (var d in detalles)
+            {
+                Console.WriteLine($"  ProductoId: {d.ProductoId}, Cantidad: {d.Cantidad}");
+            }
+        }
+
+        return Json(new { success = true, message = "Datos recibidos", detallesCount = detalles?.Count ?? 0 });
     }
 }
 

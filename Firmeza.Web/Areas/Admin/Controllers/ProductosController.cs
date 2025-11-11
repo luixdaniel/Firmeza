@@ -25,7 +25,7 @@ namespace Firmeza.Web.Areas.Admin.Controllers
         {
             try
             {
-                var productos = await _productoService.GetAllProductosAsync();
+                var productos = await _productoService.GetAllAsync();
                 var viewModels = productos.Select(p => new ProductViewModel
                 {
                     Id = p.Id,
@@ -55,7 +55,7 @@ namespace Firmeza.Web.Areas.Admin.Controllers
             }
             try
             {
-                var producto = await _productoService.GetProductoByIdAsync(id.Value);
+                var producto = await _productoService.GetByIdAsync(id.Value);
                 if (producto == null)
                 {
                     return NotFound();
@@ -110,7 +110,7 @@ namespace Firmeza.Web.Areas.Admin.Controllers
                     CategoriaId = viewModel.CategoriaId
                 };
                 
-                await _productoService.CreateProductoAsync(producto);
+                await _productoService.CreateAsync(producto);
                 TempData["Success"] = "Producto creado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
@@ -138,7 +138,7 @@ namespace Firmeza.Web.Areas.Admin.Controllers
             }
             try
             {
-                var producto = await _productoService.GetProductoByIdAsync(id.Value);
+                var producto = await _productoService.GetByIdAsync(id.Value);
                 if (producto == null)
                 {
                     return NotFound();
@@ -192,7 +192,7 @@ namespace Firmeza.Web.Areas.Admin.Controllers
                     CategoriaId = viewModel.CategoriaId
                 };
                 
-                await _productoService.UpdateProductoAsync(producto);
+                await _productoService.UpdateAsync(producto);
                 TempData["Success"] = "Producto actualizado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
@@ -220,7 +220,7 @@ namespace Firmeza.Web.Areas.Admin.Controllers
             }
             try
             {
-                var producto = await _productoService.GetProductoByIdAsync(id.Value);
+                var producto = await _productoService.GetByIdAsync(id.Value);
                 if (producto == null)
                 {
                     return NotFound();
@@ -253,7 +253,7 @@ namespace Firmeza.Web.Areas.Admin.Controllers
         {
             try
             {
-                var resultado = await _productoService.DeleteProductoAsync(id);
+                var resultado = await _productoService.DeleteAsync(id);
                 if (resultado)
                 {
                     TempData["Success"] = "Producto eliminado correctamente.";
