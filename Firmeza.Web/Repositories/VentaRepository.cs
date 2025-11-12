@@ -43,8 +43,17 @@ public class VentaRepository : IVentaRepository
 
     public async Task AddAsync(Venta venta)
     {
+        Console.WriteLine($"=== VentaRepository.AddAsync ===");
+        Console.WriteLine($"Venta Cliente: {venta.Cliente}");
+        Console.WriteLine($"Venta Total: {venta.Total}");
+        Console.WriteLine($"Detalles count: {venta.Detalles.Count}");
+        
         await _context.Ventas.AddAsync(venta);
-        await _context.SaveChangesAsync();
+        Console.WriteLine("Venta agregada al contexto");
+        
+        var cambios = await _context.SaveChangesAsync();
+        Console.WriteLine($"SaveChangesAsync ejecutado. Registros afectados: {cambios}");
+        Console.WriteLine($"Venta guardada con ID: {venta.Id}");
     }
 
     public async Task UpdateAsync(Venta venta)

@@ -14,5 +14,6 @@ public interface IClienteRepository
     Task<bool> ExistsByDocumentoAsync(string documento, int? excludeId = null);
     Task<IEnumerable<Cliente>> GetClientesActivosAsync();
     Task<Cliente?> GetByEmailAsync(string email);
+    Task<Cliente?> GetByIdWithVentasAsync(int id);
 }
 

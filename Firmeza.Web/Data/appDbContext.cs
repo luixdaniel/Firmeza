@@ -27,6 +27,27 @@ namespace Firmeza.Web.Data
             modelBuilder.Entity<Cliente>().ToTable("Clientes");
             modelBuilder.Entity<Venta>().ToTable("Ventas");
             modelBuilder.Entity<DetalleDeVenta>().ToTable("DetallesDeVenta");
+
+            // Configurar relación Venta -> DetalleDeVenta con cascada
+            modelBuilder.Entity<Venta>()
+                .HasMany(v => v.Detalles)
+                .WithOne(d => d.Venta)
+                .HasForeignKey(d => d.VentaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configurar relación Producto -> DetalleDeVenta
+            modelBuilder.Entity<DetalleDeVenta>()
+                .HasOne(d => d.Producto)
+                .WithMany()
+                .HasForeignKey(d => d.ProductoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configurar relación Cliente -> Venta (opcional)
+            modelBuilder.Entity<Cliente>()
+                .HasMany(c => c.Ventas)
+                .WithOne(v => v.ClienteEntity)
+                .HasForeignKey(v => v.ClienteId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

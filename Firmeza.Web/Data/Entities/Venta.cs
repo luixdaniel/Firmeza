@@ -11,13 +11,19 @@ namespace Firmeza.Web.Data.Entities
 
         [Required]
         [DataType(DataType.DateTime)]
-        public DateTime FechaVenta { get; set; } = DateTime.Now;
+        public DateTime FechaVenta { get; set; } = DateTime.UtcNow;
 
         [Required]
         public string NumeroFactura { get; set; } = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
 
         [Required]
         public string Cliente { get; set; }
+
+        // Relación con Cliente (opcional)
+        public int? ClienteId { get; set; }
+        
+        [ForeignKey("ClienteId")]
+        public Cliente? ClienteEntity { get; set; }
 
         [Required]
         [Column(TypeName = "decimal(18,2)")]

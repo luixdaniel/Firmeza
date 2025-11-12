@@ -37,7 +37,7 @@ namespace Firmeza.Web.Areas.Admin.Controllers
                     CategoriaNombre = p.Categoria?.Nombre ?? "Sin categoría"
                 }).ToList();
                 
-                return View(viewModels);
+                return View(viewModels  );
             }
             catch (Exception ex)
             {

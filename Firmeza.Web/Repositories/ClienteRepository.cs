@@ -96,5 +96,13 @@ public class ClienteRepository : IClienteRepository
         return await _context.Clientes
             .FirstOrDefaultAsync(c => c.Email.ToLower() == email.ToLower());
     }
+
+    public async Task<Cliente?> GetByIdWithVentasAsync(int id)
+    {
+        return await _context.Clientes
+            .Include(c => c.Ventas)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == id);
+    }
 }
 

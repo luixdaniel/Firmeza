@@ -25,7 +25,7 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label asp-for="Cliente" class="form-label">Cliente *</label>
-                            <select asp-for="Cliente" class="form-select" id="clienteSelect">
+                            <select asp-for="Cliente" class="form-select" id="clienteSelect" name="Cliente">
                                 <option value="">-- Seleccione un cliente --</option>
                                 @if (ViewBag.Clientes != null)
                                 {
@@ -40,13 +40,15 @@
                             <span asp-validation-for="Cliente" class="text-danger"></span>
                             <small class="form-text text-muted">
                                 <i class="bi bi-info-circle"></i> 
-                                Si el cliente no aparece, debe <a asp-area="Admin" asp-controller="Clientes" asp-action="Create" target="_blank">registrarlo primero</a>
+                                Solo se muestran clientes activos. Si el cliente no aparece, 
+                                <a asp-area="Admin" asp-controller="Clientes" asp-action="Create" target="_blank">regístrelo</a> o 
+                                <a asp-area="Admin" asp-controller="Clientes" asp-action="Index" target="_blank">actívelo</a> primero.
                             </small>
                         </div>
                         
                         <div class="mb-3">
                             <label asp-for="MetodoPago" class="form-label">Método de Pago *</label>
-                            <select asp-for="MetodoPago" class="form-select">
+                            <select asp-for="MetodoPago" class="form-select" name="MetodoPago">
                                 <option value="">-- Seleccione --</option>
                                 <option value="Efectivo">Efectivo</option>
                                 <option value="Tarjeta">Tarjeta</option>
@@ -55,7 +57,7 @@
                             <span asp-validation-for="MetodoPago" class="text-danger"></span>
                         </div>
                         
-                        <input type="hidden" asp-for="Vendedor" />
+                        <input type="hidden" asp-for="Vendedor" name="Vendedor" value="@Model.Vendedor" />
                     </div>
                 </div>
             </div>
@@ -302,32 +304,38 @@
                 return false;
             }
             
+            // Regenerar inputs ocultos justo antes de enviar
+            regenerarInputsOcultos();
+            
             // Verificar que los campos requeridos estén llenos
             const clienteSelect = document.querySelector('select[name="Cliente"]');
-            const metodoPago = document.querySelector('select[name="MetodoPago"]').value;
+            const metodoPagoSelect = document.querySelector('select[name="MetodoPago"]');
+            const vendedorInput = document.querySelector('input[name="Vendedor"]');
             
-            console.log('Cliente:', clienteSelect.value);
-            console.log('MetodoPago:', metodoPago);
+            console.log('Cliente:', clienteSelect?.value);
+            console.log('MetodoPago:', metodoPagoSelect?.value);
+            console.log('Vendedor:', vendedorInput?.value);
             
-            if (!clienteSelect.value || clienteSelect.value === '') {
+            if (!clienteSelect || !clienteSelect.value || clienteSelect.value === '') {
                 e.preventDefault();
                 alert('Debe seleccionar un cliente de la lista');
-                clienteSelect.focus();
+                clienteSelect?.focus();
                 return false;
             }
             
-            if (!metodoPago || metodoPago === '') {
+            if (!metodoPagoSelect || !metodoPagoSelect.value || metodoPagoSelect.value === '') {
                 e.preventDefault();
                 alert('Debe seleccionar un método de pago');
+                metodoPagoSelect?.focus();
                 return false;
             }
             
-            // Log de los inputs generados
-            const inputs = document.querySelectorAll('input[name^="Detalles["]');
-            console.log('Inputs generados:', inputs.length);
-            inputs.forEach(input => {
-                console.log(`${input.name} = ${input.value}`);
-            });
+            // Log de todos los datos del formulario
+            const formData = new FormData(e.target);
+            console.log('FormData entries:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
             
             console.log('Enviando formulario...');
             return true;

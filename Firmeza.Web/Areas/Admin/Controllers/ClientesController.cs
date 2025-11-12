@@ -108,7 +108,7 @@ public class ClientesController : Controller
     {
         try
         {
-            var cliente = await _clienteService.GetByIdAsync(id);
+            var cliente = await _clienteService.GetByIdWithVentasAsync(id);
             if (cliente == null)
             {
                 TempData["ErrorMessage"] = "Cliente no encontrado.";

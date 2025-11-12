@@ -61,7 +61,35 @@ public class VentasController : Controller
             var productos = await _productoService.GetAllAsync();
             var productosDisponibles = productos.Where(p => p.Stock > 0).ToList();
 
-            var clientes = await _clienteService.GetAllAsync();
+            // Solo mostrar clientes activos
+            var clientes = await _clienteService.GetClientesActivosAsync();
+
+            var viewModel = new CreateVentaViewModel
+            {
+                ProductosDisponibles = productosDisponibles,
+                Vendedor = User.Identity?.Name ?? "Sistema"
+            };
+
+            ViewBag.Clientes = clientes;
+            return View(viewModel);
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al cargar formulario: {ex.Message}";
+            return RedirectToAction(nameof(Index));
+        }
+    }
+
+    // Versión simplificada para pruebas
+    public async Task<IActionResult> CreateTest()
+    {
+        try
+        {
+            var productos = await _productoService.GetAllAsync();
+            var productosDisponibles = productos.Where(p => p.Stock > 0).ToList();
+
+            // Solo mostrar clientes activos
+            var clientes = await _clienteService.GetClientesActivosAsync();
 
             var viewModel = new CreateVentaViewModel
             {
@@ -87,9 +115,24 @@ public class VentasController : Controller
         {
             // Log para debugging
             Console.WriteLine($"=== POST Create Ventas ===");
+            Console.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
             Console.WriteLine($"Cliente: {viewModel.Cliente ?? "NULL"}");
             Console.WriteLine($"MetodoPago: {viewModel.MetodoPago ?? "NULL"}");
+            Console.WriteLine($"Vendedor: {viewModel.Vendedor ?? "NULL"}");
             Console.WriteLine($"Detalles Count: {viewModel.Detalles?.Count ?? 0}");
+            
+            if (!ModelState.IsValid)
+            {
+                Console.WriteLine("ModelState INVALID:");
+                foreach (var error in ModelState)
+                {
+                    Console.WriteLine($"  Key: {error.Key}");
+                    foreach (var err in error.Value.Errors)
+                    {
+                        Console.WriteLine($"    Error: {err.ErrorMessage}");
+                    }
+                }
+            }
             
             if (viewModel.Detalles != null)
             {
@@ -158,7 +201,7 @@ public class VentasController : Controller
                 Cliente = viewModel.Cliente,
                 MetodoPago = viewModel.MetodoPago,
                 Vendedor = viewModel.Vendedor ?? User.Identity?.Name ?? "Sistema",
-                FechaVenta = DateTime.Now,
+                FechaVenta = DateTime.UtcNow,
                 Estado = "Completada",
                 Detalles = new List<DetalleDeVenta>()
             };
@@ -188,6 +231,29 @@ public class VentasController : Controller
             var clientes = await _clienteService.GetAllAsync();
             ViewBag.Clientes = clientes;
             return View(viewModel);
+        }
+    }
+
+    public async Task<IActionResult> Edit(int id)
+    {
+        try
+        {
+            var venta = await _ventaService.GetByIdWithDetailsAsync(id);
+            if (venta == null)
+            {
+                TempData["ErrorMessage"] = "Venta no encontrada.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Las ventas completadas no deberían editarse normalmente
+            // Redirigir a Details en su lugar
+            TempData["InfoMessage"] = "Las ventas completadas no pueden editarse. Puede ver los detalles aquí.";
+            return RedirectToAction(nameof(Details), new { id = id });
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error: {ex.Message}";
+            return RedirectToAction(nameof(Index));
         }
     }
 
@@ -275,6 +341,32 @@ public class VentasController : Controller
         }
 
         return Json(new { success = true, message = "Datos recibidos", detallesCount = detalles?.Count ?? 0 });
+    }
+
+    // Diagnóstico: verificar datos del formulario
+    [HttpPost]
+    public IActionResult DiagnosticoVenta([FromForm] CreateVentaViewModel viewModel)
+    {
+        var diagnostico = new
+        {
+            cliente = viewModel.Cliente,
+            metodoPago = viewModel.MetodoPago,
+            vendedor = viewModel.Vendedor,
+            detallesCount = viewModel.Detalles?.Count ?? 0,
+            detalles = viewModel.Detalles?.Select(d => new
+            {
+                productoId = d.ProductoId,
+                cantidad = d.Cantidad,
+                precioUnitario = d.PrecioUnitario
+            }).ToList()
+        };
+
+        Console.WriteLine($"=== DIAGNOSTICO ===");
+        Console.WriteLine($"Cliente: {viewModel.Cliente}");
+        Console.WriteLine($"MetodoPago: {viewModel.MetodoPago}");
+        Console.WriteLine($"Detalles: {viewModel.Detalles?.Count ?? 0}");
+
+        return Json(diagnostico);
     }
 }
 

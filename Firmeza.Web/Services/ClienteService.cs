@@ -111,6 +111,16 @@ public class ClienteService : IClienteService
                     throw new ArgumentException($"Ya existe otro cliente con el documento '{cliente.Documento}'.");
             }
 
+            // Asegurar que FechaRegistro sea UTC para PostgreSQL
+            if (cliente.FechaRegistro.Kind == DateTimeKind.Unspecified)
+            {
+                cliente.FechaRegistro = DateTime.SpecifyKind(cliente.FechaRegistro, DateTimeKind.Utc);
+            }
+            else if (cliente.FechaRegistro.Kind == DateTimeKind.Local)
+            {
+                cliente.FechaRegistro = cliente.FechaRegistro.ToUniversalTime();
+            }
+
             await _clienteRepository.UpdateAsync(cliente);
             return cliente;
         }
@@ -212,6 +222,18 @@ public class ClienteService : IClienteService
         catch (Exception ex)
         {
             throw new Exception($"Error al {(activo ? "activar" : "desactivar")} el cliente: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<Cliente?> GetByIdWithVentasAsync(int id)
+    {
+        try
+        {
+            return await _clienteRepository.GetByIdWithVentasAsync(id);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error al obtener el cliente con ventas: {ex.Message}", ex);
         }
     }
 }

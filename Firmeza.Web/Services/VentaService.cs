@@ -9,11 +9,13 @@ public class VentaService : IVentaService
 {
     private readonly IVentaRepository _ventaRepository;
     private readonly IProductoRepository _productoRepository;
+    private readonly IClienteRepository _clienteRepository;
 
-    public VentaService(IVentaRepository ventaRepository, IProductoRepository productoRepository)
+    public VentaService(IVentaRepository ventaRepository, IProductoRepository productoRepository, IClienteRepository clienteRepository)
     {
         _ventaRepository = ventaRepository;
         _productoRepository = productoRepository;
+        _clienteRepository = clienteRepository;
     }
 
     public async Task<IEnumerable<Venta>> GetAllAsync()
@@ -77,7 +79,7 @@ public class VentaService : IVentaService
             if (exists)
                 throw new ArgumentException($"Ya existe una venta con el número de factura '{venta.NumeroFactura}'.");
 
-            venta.FechaVenta = DateTime.Now;
+            venta.FechaVenta = DateTime.UtcNow;
             venta.Estado = "Completada";
 
             await _ventaRepository.AddAsync(venta);
@@ -91,6 +93,10 @@ public class VentaService : IVentaService
 
     public async Task<Venta> CrearVentaConDetallesAsync(Venta venta)
     {
+        Console.WriteLine($"=== VentaService.CrearVentaConDetallesAsync ===");
+        Console.WriteLine($"Cliente: {venta.Cliente}");
+        Console.WriteLine($"Detalles count: {venta.Detalles?.Count ?? 0}");
+        
         try
         {
             // Validaciones
@@ -100,9 +106,12 @@ public class VentaService : IVentaService
             if (venta.Detalles == null || !venta.Detalles.Any())
                 throw new ArgumentException("La venta debe tener al menos un detalle.");
 
+            Console.WriteLine("Validaciones pasadas, validando stock...");
+
             // Validar stock de productos
             foreach (var detalle in venta.Detalles)
             {
+                Console.WriteLine($"Validando producto {detalle.ProductoId}...");
                 var producto = await _productoRepository.GetByIdAsync(detalle.ProductoId);
                 if (producto == null)
                     throw new ArgumentException($"El producto con ID {detalle.ProductoId} no existe.");
@@ -113,6 +122,7 @@ public class VentaService : IVentaService
                 // Establecer precio unitario del producto actual
                 detalle.PrecioUnitario = producto.Precio;
                 detalle.CalcularSubtotal();
+                Console.WriteLine($"Producto {producto.Nombre} validado. Subtotal: {detalle.Subtotal}");
             }
 
             // Calcular totales
@@ -120,13 +130,40 @@ public class VentaService : IVentaService
             venta.IVA = venta.Subtotal * 0.16m; // 16% IVA (ajustar según tu país)
             venta.Total = venta.Subtotal + venta.IVA;
 
+            Console.WriteLine($"Subtotal: {venta.Subtotal}, IVA: {venta.IVA}, Total: {venta.Total}");
+
+            // Buscar el cliente por nombre para asignar ClienteId
+            var todosLosClientes = await _clienteRepository.GetAllAsync();
+            var clienteEncontrado = todosLosClientes.FirstOrDefault(c => c.Nombre == venta.Cliente);
+            if (clienteEncontrado != null)
+            {
+                // Validar que el cliente esté activo
+                if (!clienteEncontrado.Activo)
+                {
+                    throw new InvalidOperationException($"El cliente '{clienteEncontrado.NombreCompleto}' está inactivo y no puede realizar compras. Por favor, active el cliente primero.");
+                }
+                
+                venta.ClienteId = clienteEncontrado.Id;
+                Console.WriteLine($"Cliente encontrado: ID={clienteEncontrado.Id}, Nombre={clienteEncontrado.Nombre}, Activo={clienteEncontrado.Activo}");
+            }
+            else
+            {
+                Console.WriteLine($"ADVERTENCIA: No se encontró cliente con nombre '{venta.Cliente}'");
+            }
+
             // Generar número de factura
             venta.NumeroFactura = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
-            venta.FechaVenta = DateTime.Now;
+            venta.FechaVenta = DateTime.UtcNow;
             venta.Estado = "Completada";
+
+            Console.WriteLine($"Numero factura: {venta.NumeroFactura}");
+            Console.WriteLine("Guardando venta en la base de datos...");
 
             // Guardar venta
             await _ventaRepository.AddAsync(venta);
+
+            Console.WriteLine($"Venta guardada con ID: {venta.Id}");
+            Console.WriteLine("Actualizando stock de productos...");
 
             // Actualizar stock de productos
             foreach (var detalle in venta.Detalles)
@@ -134,15 +171,19 @@ public class VentaService : IVentaService
                 var producto = await _productoRepository.GetByIdAsync(detalle.ProductoId);
                 if (producto != null)
                 {
+                    Console.WriteLine($"Actualizando stock de {producto.Nombre}: {producto.Stock} -> {producto.Stock - detalle.Cantidad}");
                     producto.Stock -= detalle.Cantidad;
                     await _productoRepository.UpdateAsync(producto);
                 }
             }
 
+            Console.WriteLine("Venta creada exitosamente!");
             return venta;
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"ERROR en CrearVentaConDetallesAsync: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             throw new Exception($"Error al crear la venta con detalles: {ex.Message}", ex);
         }
     }
