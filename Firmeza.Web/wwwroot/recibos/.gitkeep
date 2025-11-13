@@ -1,0 +1,20 @@
+# Carpeta de Recibos PDF
+
+Esta carpeta contiene los recibos PDF generados automáticamente por el sistema al crear ventas.
+
+## Formato de Archivos
+- Nombre: `Recibo_{NumeroFactura}_{VentaId}.pdf`
+- Ejemplo: `Recibo_ABC12345_1.pdf`
+
+## Acceso
+Los recibos se pueden descargar desde:
+- Lista de ventas: botón "Recibo" en cada fila
+- Detalle de venta: botón "Descargar Recibo PDF"
+- URL directa: `/Admin/Exportacion/DescargarRecibo?ventaId={id}`
+
+## Limpieza
+Esta carpeta puede crecer con el tiempo. Se recomienda implementar una tarea programada para archivar o eliminar recibos antiguos según las políticas de retención de datos.
+
+## Permisos
+Asegúrate de que la aplicación tenga permisos de escritura en esta carpeta.
+

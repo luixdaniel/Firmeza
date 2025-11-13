@@ -18,7 +18,7 @@
             <h5 class="card-title">Venta: @Model.NumeroFactura</h5>
             <dl class="row">
                 <dt class="col-sm-3">Fecha</dt>
-                <dd class="col-sm-9">@Model.FechaVenta.ToString("dd/MM/yyyy HH:mm")</dd>
+                <dd class="col-sm-9">@Model.FechaVenta.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
                 
                 <dt class="col-sm-3">Cliente</dt>
                 <dd class="col-sm-9">@Model.Cliente</dd>

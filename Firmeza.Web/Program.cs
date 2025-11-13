@@ -46,6 +46,9 @@ builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IVentaService, VentaService>();
+builder.Services.AddScoped<IImportacionMasivaService, ImportacionMasivaService>();
+builder.Services.AddScoped<IExportacionService, ExportacionService>();
+builder.Services.AddScoped<IPdfService, PdfService>();
 
 // MVC y Razor Pages (Identity UI)
 builder.Services.AddControllersWithViews();

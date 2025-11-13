@@ -10,9 +10,19 @@
         <h2>Clientes</h2>
         <p class="text-muted">Gestión de clientes registrados</p>
     </div>
-    <a class="btn btn-primary" asp-action="Create">
-        <i class="bi bi-plus-circle"></i> Nuevo Cliente
-    </a>
+    <div>
+        <div class="btn-group me-2" role="group">
+            <a asp-area="Admin" asp-controller="Exportacion" asp-action="ExportarClientesExcel" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+            </a>
+            <a asp-area="Admin" asp-controller="Exportacion" asp-action="ExportarClientesPdf" class="btn btn-danger">
+                <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+            </a>
+        </div>
+        <a class="btn btn-primary" asp-action="Create">
+            <i class="bi bi-plus-circle"></i> Nuevo Cliente
+        </a>
+    </div>
 </div>
 
 @if (Model == null || !Model.Any())

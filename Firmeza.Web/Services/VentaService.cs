@@ -1,7 +1,6 @@
 using Firmeza.Web.Data.Entities;
 using Firmeza.Web.Interfaces.Repositories;
 using Firmeza.Web.Interfaces.Services;
-using Microsoft.EntityFrameworkCore;
 
 namespace Firmeza.Web.Services;
 
@@ -10,12 +9,14 @@ public class VentaService : IVentaService
     private readonly IVentaRepository _ventaRepository;
     private readonly IProductoRepository _productoRepository;
     private readonly IClienteRepository _clienteRepository;
+    private readonly IPdfService _pdfService;
 
-    public VentaService(IVentaRepository ventaRepository, IProductoRepository productoRepository, IClienteRepository clienteRepository)
+    public VentaService(IVentaRepository ventaRepository, IProductoRepository productoRepository, IClienteRepository clienteRepository, IPdfService pdfService)
     {
         _ventaRepository = ventaRepository;
         _productoRepository = productoRepository;
         _clienteRepository = clienteRepository;
+        _pdfService = pdfService;
     }
 
     public async Task<IEnumerable<Venta>> GetAllAsync()
@@ -178,6 +179,20 @@ public class VentaService : IVentaService
             }
 
             Console.WriteLine("Venta creada exitosamente!");
+            
+            // Generar recibo PDF automáticamente
+            try
+            {
+                Console.WriteLine("Generando recibo PDF...");
+                var rutaPdf = await _pdfService.GenerarReciboPdfAsync(venta);
+                Console.WriteLine($"Recibo PDF generado: {rutaPdf}");
+            }
+            catch (Exception pdfEx)
+            {
+                Console.WriteLine($"Error al generar recibo PDF: {pdfEx.Message}");
+                // No lanzamos excepción para no afectar la creación de la venta
+            }
+            
             return venta;
         }
         catch (Exception ex)

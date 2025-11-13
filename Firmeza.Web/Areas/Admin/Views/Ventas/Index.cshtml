@@ -10,9 +10,19 @@
         <h2>Ventas</h2>
         <p class="text-muted">Historial y gestión de ventas</p>
     </div>
-    <a class="btn btn-primary" asp-action="Create">
-        <i class="bi bi-plus-circle"></i> Nueva Venta
-    </a>
+    <div>
+        <div class="btn-group me-2" role="group">
+            <a asp-area="Admin" asp-controller="Exportacion" asp-action="ExportarVentasExcel" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+            </a>
+            <a asp-area="Admin" asp-controller="Exportacion" asp-action="ExportarVentasPdf" class="btn btn-danger">
+                <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+            </a>
+        </div>
+        <a class="btn btn-primary" asp-action="Create">
+            <i class="bi bi-plus-circle"></i> Nueva Venta
+        </a>
+    </div>
 </div>
 
 @if (Model == null || !Model.Any())
@@ -41,13 +51,16 @@ else
                 {
                     <tr>
                         <td>@v.Id</td>
-                        <td>@v.FechaVenta.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@v.FechaVenta.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                         <td><strong>@v.NumeroFactura</strong></td>
                         <td>@v.Cliente</td>
                         <td><strong>@v.Total.ToString("C")</strong></td>
                         <td>
                             <a asp-action="Details" asp-route-id="@v.Id" class="btn btn-sm btn-info" title="Ver detalles">
                                 <i class="bi bi-eye"></i> Detalles
+                            </a>
+                            <a asp-area="Admin" asp-controller="Exportacion" asp-action="DescargarRecibo" asp-route-ventaId="@v.Id" class="btn btn-sm btn-success" title="Descargar recibo PDF">
+                                <i class="bi bi-file-earmark-pdf"></i> Recibo
                             </a>
                             <a asp-action="Delete" asp-route-id="@v.Id" class="btn btn-sm btn-danger" title="Eliminar venta">
                                 <i class="bi bi-trash"></i> Eliminar
