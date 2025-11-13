@@ -63,7 +63,6 @@ public class VentasController : Controller
 
             // Solo mostrar clientes activos
             var clientes = await _clienteService.GetClientesActivosAsync();
-
             var viewModel = new CreateVentaViewModel
             {
                 ProductosDisponibles = productosDisponibles,
@@ -90,7 +89,6 @@ public class VentasController : Controller
 
             // Solo mostrar clientes activos
             var clientes = await _clienteService.GetClientesActivosAsync();
-
             var viewModel = new CreateVentaViewModel
             {
                 ProductosDisponibles = productosDisponibles,

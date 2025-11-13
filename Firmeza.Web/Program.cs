@@ -1,3 +1,4 @@
+using System.Globalization;
 using Firmeza.Web.Data;
 using Firmeza.Web.Data.Seed;
 using Firmeza.Web.Identity;
@@ -11,6 +12,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configurar cultura para usar símbolo de peso ($) independientemente del sistema operativo
+var cultureInfo = new CultureInfo("es-CO"); // Colombia usa el símbolo $
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 // Agregar la conexión con Supabase (PostgreSQL)
 builder.Services.AddDbContext<AppDbContext>(options =>

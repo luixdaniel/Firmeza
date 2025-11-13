@@ -41,11 +41,11 @@ public class Cliente
     
     public bool Activo { get; set; } = true;
     
+    // Propiedad calculada para el nombre completo
+    public string NombreCompleto => $"{Nombre} {Apellido}";
+    
     // Relación con ApplicationUser (opcional, puede ser null para clientes sin cuenta)
     public string? ApplicationUserId { get; set; }
-    
-    // Propiedad calculada para nombre completo
-    public string NombreCompleto => $"{Nombre} {Apellido}";
     
     // Relación: Un cliente puede tener muchas ventas
     public ICollection<Venta>? Ventas { get; set; }
