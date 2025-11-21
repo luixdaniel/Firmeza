@@ -1,24 +1,34 @@
 using ApiFirmeza.Web.DTOs;
+using AutoMapper;
+using Firmeza.Web.Data.Entities;
 using Firmeza.Web.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiFirmeza.Web.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class VentasController : ControllerBase
 {
     private readonly IVentaService _ventaService;
+    private readonly IClienteService _clienteService;
     private readonly IProductoService _productoService;
+    private readonly IMapper _mapper;
     private readonly ILogger<VentasController> _logger;
 
     public VentasController(
-        IVentaService ventaService, 
+        IVentaService ventaService,
+        IClienteService clienteService,
         IProductoService productoService,
+        IMapper mapper,
         ILogger<VentasController> logger)
     {
         _ventaService = ventaService;
+        _clienteService = clienteService;
         _productoService = productoService;
+        _mapper = mapper;
         _logger = logger;
     }
 
@@ -26,36 +36,14 @@ public class VentasController : ControllerBase
     /// Obtiene todas las ventas
     /// </summary>
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<VentaDto>>> GetAll()
     {
         try
         {
             var ventas = await _ventaService.GetAllAsync();
-            var ventasDto = ventas.Select(v => new VentaDto
-            {
-                Id = v.Id,
-                FechaVenta = v.FechaVenta,
-                NumeroFactura = v.NumeroFactura,
-                Cliente = v.Cliente,
-                ClienteId = v.ClienteId,
-                Total = v.Total,
-                Subtotal = v.Subtotal,
-                IVA = v.IVA,
-                MetodoPago = v.MetodoPago,
-                Estado = v.Estado,
-                Vendedor = v.Vendedor,
-                Detalles = v.Detalles?.Select(d => new DetalleVentaDto
-                {
-                    Id = d.Id,
-                    ProductoId = d.ProductoId,
-                    ProductoNombre = d.Producto?.Nombre ?? "",
-                    Cantidad = d.Cantidad,
-                    PrecioUnitario = d.PrecioUnitario,
-                    Subtotal = d.Subtotal
-                }).ToList() ?? new List<DetalleVentaDto>()
-            });
-
+            var ventasDto = _mapper.Map<IEnumerable<VentaDto>>(ventas);
             return Ok(ventasDto);
         }
         catch (Exception ex)
@@ -75,39 +63,59 @@ public class VentasController : ControllerBase
     {
         try
         {
-            var venta = await _ventaService.GetByIdWithDetailsAsync(id);
+            var venta = await _ventaService.GetByIdAsync(id);
             if (venta == null)
                 return NotFound($"Venta con ID {id} no encontrada");
 
-            var ventaDto = new VentaDto
-            {
-                Id = venta.Id,
-                FechaVenta = venta.FechaVenta,
-                NumeroFactura = venta.NumeroFactura,
-                Cliente = venta.Cliente,
-                ClienteId = venta.ClienteId,
-                Total = venta.Total,
-                Subtotal = venta.Subtotal,
-                IVA = venta.IVA,
-                MetodoPago = venta.MetodoPago,
-                Estado = venta.Estado,
-                Vendedor = venta.Vendedor,
-                Detalles = venta.Detalles?.Select(d => new DetalleVentaDto
-                {
-                    Id = d.Id,
-                    ProductoId = d.ProductoId,
-                    ProductoNombre = d.Producto?.Nombre ?? "",
-                    Cantidad = d.Cantidad,
-                    PrecioUnitario = d.PrecioUnitario,
-                    Subtotal = d.Subtotal
-                }).ToList() ?? new List<DetalleVentaDto>()
-            };
-
+            var ventaDto = _mapper.Map<VentaDto>(venta);
             return Ok(ventaDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al obtener venta {Id}", id);
+            return StatusCode(500, "Error interno del servidor");
+        }
+    }
+
+    /// <summary>
+    /// Obtiene ventas por cliente
+    /// </summary>
+    [HttpGet("cliente/{clienteId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<VentaDto>>> GetByCliente(int clienteId)
+    {
+        try
+        {
+            var ventas = await _ventaService.GetByClienteIdAsync(clienteId);
+            var ventasDto = _mapper.Map<IEnumerable<VentaDto>>(ventas);
+            return Ok(ventasDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener ventas del cliente {ClienteId}", clienteId);
+            return StatusCode(500, "Error interno del servidor");
+        }
+    }
+
+    /// <summary>
+    /// Obtiene ventas por rango de fechas
+    /// </summary>
+    [HttpGet("fecha-rango")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<VentaDto>>> GetByFechaRango(
+        [FromQuery] DateTime fechaInicio,
+        [FromQuery] DateTime fechaFin)
+    {
+        try
+        {
+            var ventas = await _ventaService.GetByFechaRangoAsync(fechaInicio, fechaFin);
+            var ventasDto = _mapper.Map<IEnumerable<VentaDto>>(ventas);
+            return Ok(ventasDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener ventas por rango de fechas");
             return StatusCode(500, "Error interno del servidor");
         }
     }
@@ -125,10 +133,12 @@ public class VentasController : ControllerBase
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (ventaDto.Detalles == null || !ventaDto.Detalles.Any())
-                return BadRequest("La venta debe tener al menos un detalle");
+            // Validar que el cliente existe
+            var cliente = await _clienteService.GetByIdAsync(ventaDto.ClienteId);
+            if (cliente == null)
+                return BadRequest($"Cliente con ID {ventaDto.ClienteId} no encontrado");
 
-            // Verificar stock de productos
+            // Validar que todos los productos existen y hay stock
             foreach (var detalle in ventaDto.Detalles)
             {
                 var producto = await _productoService.GetByIdAsync(detalle.ProductoId);
@@ -136,73 +146,32 @@ public class VentasController : ControllerBase
                     return BadRequest($"Producto con ID {detalle.ProductoId} no encontrado");
 
                 if (producto.Stock < detalle.Cantidad)
-                    return BadRequest($"Stock insuficiente para el producto {producto.Nombre}. Stock disponible: {producto.Stock}");
+                    return BadRequest($"Stock insuficiente para el producto '{producto.Nombre}'. Stock disponible: {producto.Stock}");
             }
 
+            var venta = _mapper.Map<Venta>(ventaDto);
+            venta.Cliente = $"{cliente.Nombre} {cliente.Apellido}";
+            
             // Calcular totales
-            decimal subtotal = ventaDto.Detalles.Sum(d => d.PrecioUnitario * d.Cantidad);
-            decimal iva = subtotal * 0.19m; // 19% IVA
-            decimal total = subtotal + iva;
-
-            var venta = new Firmeza.Web.Data.Entities.Venta
+            decimal total = 0;
+            foreach (var detalle in venta.Detalles)
             {
-                FechaVenta = DateTime.UtcNow,
-                NumeroFactura = Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
-                Cliente = ventaDto.Cliente,
-                ClienteId = ventaDto.ClienteId,
-                Subtotal = subtotal,
-                IVA = iva,
-                Total = total,
-                MetodoPago = ventaDto.MetodoPago,
-                Estado = "Completada",
-                Vendedor = ventaDto.Vendedor,
-                Detalles = ventaDto.Detalles.Select(d => new Firmeza.Web.Data.Entities.DetalleDeVenta
-                {
-                    ProductoId = d.ProductoId,
-                    Cantidad = d.Cantidad,
-                    PrecioUnitario = d.PrecioUnitario,
-                    Subtotal = d.PrecioUnitario * d.Cantidad
-                }).ToList()
-            };
-
-            await _ventaService.CrearVentaConDetallesAsync(venta);
-
-            // Actualizar stock de productos
-            foreach (var detalle in ventaDto.Detalles)
-            {
-                var producto = await _productoService.GetByIdAsync(detalle.ProductoId);
-                if (producto != null)
-                {
-                    producto.Stock -= detalle.Cantidad;
-                    await _productoService.UpdateAsync(producto);
-                }
+                detalle.Subtotal = detalle.Cantidad * detalle.PrecioUnitario;
+                total += detalle.Subtotal;
             }
+            
+            venta.Subtotal = total;
+            venta.IVA = total * 0.19m; // 19% de IVA
+            venta.Total = total + venta.IVA;
 
-            var ventaCreada = new VentaDto
-            {
-                Id = venta.Id,
-                FechaVenta = venta.FechaVenta,
-                NumeroFactura = venta.NumeroFactura,
-                Cliente = venta.Cliente,
-                ClienteId = venta.ClienteId,
-                Total = venta.Total,
-                Subtotal = venta.Subtotal,
-                IVA = venta.IVA,
-                MetodoPago = venta.MetodoPago,
-                Estado = venta.Estado,
-                Vendedor = venta.Vendedor,
-                Detalles = venta.Detalles.Select(d => new DetalleVentaDto
-                {
-                    Id = d.Id,
-                    ProductoId = d.ProductoId,
-                    ProductoNombre = d.Producto?.Nombre ?? "",
-                    Cantidad = d.Cantidad,
-                    PrecioUnitario = d.PrecioUnitario,
-                    Subtotal = d.Subtotal
-                }).ToList()
-            };
+            await _ventaService.CreateAsync(venta);
 
+            var ventaCreada = _mapper.Map<VentaDto>(venta);
             return CreatedAtAction(nameof(GetById), new { id = venta.Id }, ventaCreada);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
@@ -212,44 +181,105 @@ public class VentasController : ControllerBase
     }
 
     /// <summary>
-    /// Obtiene las ventas de un cliente específico
+    /// Actualiza una venta existente
     /// </summary>
-    [HttpGet("cliente/{clienteNombre}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<VentaDto>>> GetByCliente(string clienteNombre)
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Update(int id, [FromBody] VentaUpdateDto ventaDto)
     {
         try
         {
-            var ventas = await _ventaService.GetVentasByClienteAsync(clienteNombre);
-            var ventasDto = ventas.Select(v => new VentaDto
-            {
-                Id = v.Id,
-                FechaVenta = v.FechaVenta,
-                NumeroFactura = v.NumeroFactura,
-                Cliente = v.Cliente,
-                ClienteId = v.ClienteId,
-                Total = v.Total,
-                Subtotal = v.Subtotal,
-                IVA = v.IVA,
-                MetodoPago = v.MetodoPago,
-                Estado = v.Estado,
-                Vendedor = v.Vendedor,
-                Detalles = v.Detalles?.Select(d => new DetalleVentaDto
-                {
-                    Id = d.Id,
-                    ProductoId = d.ProductoId,
-                    ProductoNombre = d.Producto?.Nombre ?? "",
-                    Cantidad = d.Cantidad,
-                    PrecioUnitario = d.PrecioUnitario,
-                    Subtotal = d.Subtotal
-                }).ToList() ?? new List<DetalleVentaDto>()
-            });
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            return Ok(ventasDto);
+            var ventaExistente = await _ventaService.GetByIdAsync(id);
+            if (ventaExistente == null)
+                return NotFound($"Venta con ID {id} no encontrada");
+
+            // Validar cliente
+            var cliente = await _clienteService.GetByIdAsync(ventaDto.ClienteId);
+            if (cliente == null)
+                return BadRequest($"Cliente con ID {ventaDto.ClienteId} no encontrado");
+
+            _mapper.Map(ventaDto, ventaExistente);
+            ventaExistente.Cliente = $"{cliente.Nombre} {cliente.Apellido}";
+            
+            // Recalcular totales
+            decimal total = 0;
+            foreach (var detalle in ventaExistente.Detalles)
+            {
+                detalle.Subtotal = detalle.Cantidad * detalle.PrecioUnitario;
+                total += detalle.Subtotal;
+            }
+            
+            ventaExistente.Subtotal = total;
+            ventaExistente.IVA = total * 0.19m;
+            ventaExistente.Total = total + ventaExistente.IVA;
+
+            await _ventaService.UpdateAsync(ventaExistente);
+
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error al obtener ventas del cliente {ClienteNombre}", clienteNombre);
+            _logger.LogError(ex, "Error al actualizar venta {Id}", id);
+            return StatusCode(500, "Error interno del servidor");
+        }
+    }
+
+    /// <summary>
+    /// Elimina una venta (solo Admin)
+    /// </summary>
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(int id)
+    {
+        try
+        {
+            var resultado = await _ventaService.DeleteAsync(id);
+            if (!resultado)
+                return NotFound($"Venta con ID {id} no encontrada");
+
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al eliminar venta {Id}", id);
+            return StatusCode(500, "Error interno del servidor");
+        }
+    }
+
+    /// <summary>
+    /// Obtiene el total de ventas en un período
+    /// </summary>
+    [HttpGet("total-periodo")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<object>> GetTotalPeriodo(
+        [FromQuery] DateTime fechaInicio,
+        [FromQuery] DateTime fechaFin)
+    {
+        try
+        {
+            var total = await _ventaService.GetTotalVentasPeriodoAsync(fechaInicio, fechaFin);
+            return Ok(new { fechaInicio, fechaFin, total });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al calcular total de ventas");
             return StatusCode(500, "Error interno del servidor");
         }
     }

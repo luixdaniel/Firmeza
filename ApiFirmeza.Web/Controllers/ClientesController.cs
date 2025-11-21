@@ -1,19 +1,28 @@
 using ApiFirmeza.Web.DTOs;
+using AutoMapper;
+using Firmeza.Web.Data.Entities;
 using Firmeza.Web.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiFirmeza.Web.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ClientesController : ControllerBase
 {
     private readonly IClienteService _clienteService;
+    private readonly IMapper _mapper;
     private readonly ILogger<ClientesController> _logger;
 
-    public ClientesController(IClienteService clienteService, ILogger<ClientesController> logger)
+    public ClientesController(
+        IClienteService clienteService,
+        IMapper mapper,
+        ILogger<ClientesController> logger)
     {
         _clienteService = clienteService;
+        _mapper = mapper;
         _logger = logger;
     }
 
@@ -21,28 +30,14 @@ public class ClientesController : ControllerBase
     /// Obtiene todos los clientes
     /// </summary>
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ClienteDto>>> GetAll()
     {
         try
         {
             var clientes = await _clienteService.GetAllAsync();
-            var clientesDto = clientes.Select(c => new ClienteDto
-            {
-                Id = c.Id,
-                Nombre = c.Nombre,
-                Apellido = c.Apellido,
-                NombreCompleto = c.NombreCompleto,
-                Email = c.Email,
-                Telefono = c.Telefono,
-                Documento = c.Documento,
-                Direccion = c.Direccion,
-                Ciudad = c.Ciudad,
-                Pais = c.Pais,
-                FechaRegistro = c.FechaRegistro,
-                Activo = c.Activo
-            });
-
+            var clientesDto = _mapper.Map<IEnumerable<ClienteDto>>(clientes);
             return Ok(clientesDto);
         }
         catch (Exception ex)
@@ -66,22 +61,7 @@ public class ClientesController : ControllerBase
             if (cliente == null)
                 return NotFound($"Cliente con ID {id} no encontrado");
 
-            var clienteDto = new ClienteDto
-            {
-                Id = cliente.Id,
-                Nombre = cliente.Nombre,
-                Apellido = cliente.Apellido,
-                NombreCompleto = cliente.NombreCompleto,
-                Email = cliente.Email,
-                Telefono = cliente.Telefono,
-                Documento = cliente.Documento,
-                Direccion = cliente.Direccion,
-                Ciudad = cliente.Ciudad,
-                Pais = cliente.Pais,
-                FechaRegistro = cliente.FechaRegistro,
-                Activo = cliente.Activo
-            };
-
+            var clienteDto = _mapper.Map<ClienteDto>(cliente);
             return Ok(clienteDto);
         }
         catch (Exception ex)
@@ -92,9 +72,34 @@ public class ClientesController : ControllerBase
     }
 
     /// <summary>
+    /// Busca clientes por nombre o email
+    /// </summary>
+    [HttpGet("buscar")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<ClienteDto>>> Search([FromQuery] string criterio)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(criterio))
+                return Ok(new List<ClienteDto>());
+
+            var clientes = await _clienteService.SearchAsync(criterio);
+            var clientesDto = _mapper.Map<IEnumerable<ClienteDto>>(clientes);
+            return Ok(clientesDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al buscar clientes");
+            return StatusCode(500, "Error interno del servidor");
+        }
+    }
+
+    /// <summary>
     /// Crea un nuevo cliente
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ClienteDto>> Create([FromBody] ClienteCreateDto clienteDto)
@@ -104,38 +109,10 @@ public class ClientesController : ControllerBase
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var cliente = new Firmeza.Web.Data.Entities.Cliente
-            {
-                Nombre = clienteDto.Nombre,
-                Apellido = clienteDto.Apellido,
-                Email = clienteDto.Email,
-                Telefono = clienteDto.Telefono,
-                Documento = clienteDto.Documento,
-                Direccion = clienteDto.Direccion,
-                Ciudad = clienteDto.Ciudad,
-                Pais = clienteDto.Pais,
-                FechaRegistro = DateTime.UtcNow,
-                Activo = true
-            };
-
+            var cliente = _mapper.Map<Cliente>(clienteDto);
             await _clienteService.CreateAsync(cliente);
 
-            var clienteCreado = new ClienteDto
-            {
-                Id = cliente.Id,
-                Nombre = cliente.Nombre,
-                Apellido = cliente.Apellido,
-                NombreCompleto = cliente.NombreCompleto,
-                Email = cliente.Email,
-                Telefono = cliente.Telefono,
-                Documento = cliente.Documento,
-                Direccion = cliente.Direccion,
-                Ciudad = cliente.Ciudad,
-                Pais = cliente.Pais,
-                FechaRegistro = cliente.FechaRegistro,
-                Activo = cliente.Activo
-            };
-
+            var clienteCreado = _mapper.Map<ClienteDto>(cliente);
             return CreatedAtAction(nameof(GetById), new { id = cliente.Id }, clienteCreado);
         }
         catch (ArgumentException ex)
@@ -153,6 +130,7 @@ public class ClientesController : ControllerBase
     /// Actualiza un cliente existente
     /// </summary>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -167,16 +145,7 @@ public class ClientesController : ControllerBase
             if (clienteExistente == null)
                 return NotFound($"Cliente con ID {id} no encontrado");
 
-            clienteExistente.Nombre = clienteDto.Nombre;
-            clienteExistente.Apellido = clienteDto.Apellido;
-            clienteExistente.Email = clienteDto.Email;
-            clienteExistente.Telefono = clienteDto.Telefono;
-            clienteExistente.Documento = clienteDto.Documento;
-            clienteExistente.Direccion = clienteDto.Direccion;
-            clienteExistente.Ciudad = clienteDto.Ciudad;
-            clienteExistente.Pais = clienteDto.Pais;
-            clienteExistente.Activo = clienteDto.Activo;
-
+            _mapper.Map(clienteDto, clienteExistente);
             await _clienteService.UpdateAsync(clienteExistente);
 
             return NoContent();
@@ -196,6 +165,7 @@ public class ClientesController : ControllerBase
     /// Elimina un cliente
     /// </summary>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
@@ -208,9 +178,34 @@ public class ClientesController : ControllerBase
 
             return NoContent();
         }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al eliminar cliente {Id}", id);
+            return StatusCode(500, "Error interno del servidor");
+        }
+    }
+
+    /// <summary>
+    /// Obtiene los clientes activos
+    /// </summary>
+    [HttpGet("activos")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<ClienteDto>>> GetActivos()
+    {
+        try
+        {
+            var clientes = await _clienteService.GetActivosAsync();
+            var clientesDto = _mapper.Map<IEnumerable<ClienteDto>>(clientes);
+            return Ok(clientesDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener clientes activos");
             return StatusCode(500, "Error interno del servidor");
         }
     }

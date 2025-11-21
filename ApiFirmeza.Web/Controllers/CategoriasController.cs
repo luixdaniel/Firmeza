@@ -1,19 +1,28 @@
 using ApiFirmeza.Web.DTOs;
+using AutoMapper;
+using Firmeza.Web.Data.Entities;
 using Firmeza.Web.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiFirmeza.Web.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class CategoriasController : ControllerBase
 {
     private readonly ICategoriaService _categoriaService;
+    private readonly IMapper _mapper;
     private readonly ILogger<CategoriasController> _logger;
 
-    public CategoriasController(ICategoriaService categoriaService, ILogger<CategoriasController> logger)
+    public CategoriasController(
+        ICategoriaService categoriaService,
+        IMapper mapper,
+        ILogger<CategoriasController> logger)
     {
         _categoriaService = categoriaService;
+        _mapper = mapper;
         _logger = logger;
     }
 
@@ -21,20 +30,14 @@ public class CategoriasController : ControllerBase
     /// Obtiene todas las categorías
     /// </summary>
     [HttpGet]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CategoriaDto>>> GetAll()
     {
         try
         {
             var categorias = await _categoriaService.GetAllAsync();
-            var categoriasDto = categorias.Select(c => new CategoriaDto
-            {
-                Id = c.Id,
-                Nombre = c.Nombre,
-                Descripcion = c.Descripcion,
-                CantidadProductos = c.Productos?.Count ?? 0
-            });
-
+            var categoriasDto = _mapper.Map<IEnumerable<CategoriaDto>>(categorias);
             return Ok(categoriasDto);
         }
         catch (Exception ex)
@@ -48,6 +51,7 @@ public class CategoriasController : ControllerBase
     /// Obtiene una categoría por ID
     /// </summary>
     [HttpGet("{id}")]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CategoriaDto>> GetById(int id)
@@ -58,14 +62,7 @@ public class CategoriasController : ControllerBase
             if (categoria == null)
                 return NotFound($"Categoría con ID {id} no encontrada");
 
-            var categoriaDto = new CategoriaDto
-            {
-                Id = categoria.Id,
-                Nombre = categoria.Nombre,
-                Descripcion = categoria.Descripcion,
-                CantidadProductos = categoria.Productos?.Count ?? 0
-            };
-
+            var categoriaDto = _mapper.Map<CategoriaDto>(categoria);
             return Ok(categoriaDto);
         }
         catch (Exception ex)
@@ -118,9 +115,10 @@ public class CategoriasController : ControllerBase
     }
 
     /// <summary>
-    /// Actualiza una categoría existente
+    /// Actualiza una categoría existente (solo Admin)
     /// </summary>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -135,9 +133,7 @@ public class CategoriasController : ControllerBase
             if (categoriaExistente == null)
                 return NotFound($"Categoría con ID {id} no encontrada");
 
-            categoriaExistente.Nombre = categoriaDto.Nombre;
-            categoriaExistente.Descripcion = categoriaDto.Descripcion;
-
+            _mapper.Map(categoriaDto, categoriaExistente);
             await _categoriaService.UpdateAsync(categoriaExistente);
 
             return NoContent();
@@ -154,9 +150,10 @@ public class CategoriasController : ControllerBase
     }
 
     /// <summary>
-    /// Elimina una categoría
+    /// Elimina una categoría (solo Admin)
     /// </summary>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

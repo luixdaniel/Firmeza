@@ -133,4 +133,34 @@ public class ProductoService : IProductoService
             throw new Exception($"Error al verificar la existencia de la categoría: {ex.Message}", ex);
         }
     }
+
+    public async Task<IEnumerable<Producto>> SearchByNombreAsync(string nombre)
+    {
+        try
+        {
+            return await _context.Productos
+                .Include(p => p.Categoria)
+                .Where(p => p.Nombre.ToLower().Contains(nombre.ToLower()))
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error al buscar productos por nombre: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<IEnumerable<Producto>> GetByCategoriaIdAsync(int categoriaId)
+    {
+        try
+        {
+            return await _context.Productos
+                .Include(p => p.Categoria)
+                .Where(p => p.CategoriaId == categoriaId)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error al obtener productos por categoría: {ex.Message}", ex);
+        }
+    }
 }

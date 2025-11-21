@@ -11,7 +11,8 @@ namespace Firmeza.Web.Data.Seed
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-            string[] roles = { "Administrador", "Cliente" };
+            // Roles consistentes con la API
+            string[] roles = { "Admin", "Cliente" };
 
             foreach (var role in roles)
             {
@@ -19,9 +20,9 @@ namespace Firmeza.Web.Data.Seed
                     await roleManager.CreateAsync(new IdentityRole(role));
             }
 
-            // Usuario administrador por defecto
+            // Usuario administrador por defecto (mismas credenciales que la API)
             var adminEmail = "admin@firmeza.com";
-            var adminPass = "Admin123$";
+            var adminPass = "Admin123!";
 
             if (await userManager.FindByEmailAsync(adminEmail) == null)
             {
@@ -29,11 +30,17 @@ namespace Firmeza.Web.Data.Seed
                 {
                     UserName = adminEmail,
                     Email = adminEmail,
-                    NombreCompleto = "Administrador General"
+                    EmailConfirmed = true,
+                    Nombre = "Admin",
+                    Apellido = "Sistema",
+                    NombreCompleto = "Admin Sistema"
                 };
 
-                await userManager.CreateAsync(admin, adminPass);
-                await userManager.AddToRoleAsync(admin, "Administrador");
+                var result = await userManager.CreateAsync(admin, adminPass);
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(admin, "Admin");
+                }
             }
         }
     }

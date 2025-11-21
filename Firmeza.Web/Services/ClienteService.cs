@@ -236,5 +236,36 @@ public class ClienteService : IClienteService
             throw new Exception($"Error al obtener el cliente con ventas: {ex.Message}", ex);
         }
     }
+
+    // Métodos adicionales para API
+    public async Task<IEnumerable<Cliente>> GetActivosAsync()
+    {
+        try
+        {
+            return await _clienteRepository.GetClientesActivosAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error al obtener clientes activos: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<IEnumerable<Cliente>> SearchAsync(string criterio)
+    {
+        try
+        {
+            var clientes = await _clienteRepository.GetAllAsync();
+            return clientes.Where(c => 
+                c.Nombre.Contains(criterio, StringComparison.OrdinalIgnoreCase) ||
+                c.Apellido.Contains(criterio, StringComparison.OrdinalIgnoreCase) ||
+                c.Email.Contains(criterio, StringComparison.OrdinalIgnoreCase) ||
+                (c.Documento != null && c.Documento.Contains(criterio, StringComparison.OrdinalIgnoreCase))
+            );
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error al buscar clientes: {ex.Message}", ex);
+        }
+    }
 }
 

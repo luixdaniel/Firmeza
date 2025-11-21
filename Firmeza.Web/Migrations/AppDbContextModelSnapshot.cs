@@ -43,6 +43,64 @@ namespace Firmeza.Web.Migrations
                     b.ToTable("Categorias", (string)null);
                 });
 
+            modelBuilder.Entity("Firmeza.Web.Data.Entities.Cliente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Ciudad")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Direccion")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<string>("Documento")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateTime>("FechaRegistro")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Pais")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Telefono")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Clientes", (string)null);
+                });
+
             modelBuilder.Entity("Firmeza.Web.Data.Entities.DetalleDeVenta", b =>
                 {
                     b.Property<int>("Id")
@@ -119,6 +177,9 @@ namespace Firmeza.Web.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("ClienteId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Estado")
                         .IsRequired()
                         .HasColumnType("text");
@@ -149,6 +210,8 @@ namespace Firmeza.Web.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClienteId");
+
                     b.ToTable("Ventas", (string)null);
                 });
 
@@ -159,6 +222,10 @@ namespace Firmeza.Web.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -176,6 +243,10 @@ namespace Firmeza.Web.Migrations
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("NombreCompleto")
                         .HasColumnType("text");
@@ -356,7 +427,7 @@ namespace Firmeza.Web.Migrations
                     b.HasOne("Firmeza.Web.Data.Entities.Producto", "Producto")
                         .WithMany()
                         .HasForeignKey("ProductoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Firmeza.Web.Data.Entities.Venta", "Venta")
@@ -379,6 +450,16 @@ namespace Firmeza.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("Categoria");
+                });
+
+            modelBuilder.Entity("Firmeza.Web.Data.Entities.Venta", b =>
+                {
+                    b.HasOne("Firmeza.Web.Data.Entities.Cliente", "ClienteEntity")
+                        .WithMany("Ventas")
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ClienteEntity");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -435,6 +516,11 @@ namespace Firmeza.Web.Migrations
             modelBuilder.Entity("Firmeza.Web.Data.Entities.Categoria", b =>
                 {
                     b.Navigation("Productos");
+                });
+
+            modelBuilder.Entity("Firmeza.Web.Data.Entities.Cliente", b =>
+                {
+                    b.Navigation("Ventas");
                 });
 
             modelBuilder.Entity("Firmeza.Web.Data.Entities.Venta", b =>

@@ -397,5 +397,44 @@ public class VentaService : IVentaService
             throw new Exception($"Error al completar la venta: {ex.Message}", ex);
         }
     }
+
+    // Métodos adicionales para API
+    public async Task<IEnumerable<Venta>> GetByClienteIdAsync(int clienteId)
+    {
+        try
+        {
+            var ventas = await _ventaRepository.GetAllAsync();
+            return ventas.Where(v => v.ClienteId == clienteId);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error al obtener ventas por cliente: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<IEnumerable<Venta>> GetByFechaRangoAsync(DateTime fechaInicio, DateTime fechaFin)
+    {
+        try
+        {
+            return await _ventaRepository.GetVentasByFechaRangoAsync(fechaInicio, fechaFin);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error al obtener ventas por rango de fechas: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<decimal> GetTotalVentasPeriodoAsync(DateTime fechaInicio, DateTime fechaFin)
+    {
+        try
+        {
+            var ventas = await _ventaRepository.GetVentasByFechaRangoAsync(fechaInicio, fechaFin);
+            return ventas.Sum(v => v.Total);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Error al calcular total de ventas: {ex.Message}", ex);
+        }
+    }
 }
 

@@ -13,5 +13,10 @@ public interface IVentaService : IGenericService<Venta>
     Task<Venta> CrearVentaConDetallesAsync(Venta venta);
     Task<bool> CancelarVentaAsync(int id);
     Task<bool> CompletarVentaAsync(int id);
+    
+    // Métodos adicionales para API
+    Task<IEnumerable<Venta>> GetByClienteIdAsync(int clienteId);
+    Task<IEnumerable<Venta>> GetByFechaRangoAsync(DateTime fechaInicio, DateTime fechaFin);
+    Task<decimal> GetTotalVentasPeriodoAsync(DateTime fechaInicio, DateTime fechaFin);
 }
 

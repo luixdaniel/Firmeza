@@ -10,5 +10,9 @@ public interface IClienteService : IGenericService<Cliente>
     Task<Cliente?> GetByEmailAsync(string email);
     Task<bool> ActivarDesactivarAsync(int id, bool activo);
     Task<Cliente?> GetByIdWithVentasAsync(int id);
+    
+    // Métodos adicionales para API
+    Task<IEnumerable<Cliente>> GetActivosAsync();
+    Task<IEnumerable<Cliente>> SearchAsync(string criterio);
 }
 
