@@ -17,7 +17,10 @@ public class PdfService : IPdfService
     {
         _ventaRepository = ventaRepository;
         _environment = environment;
-        _recibosPath = Path.Combine(_environment.WebRootPath, "recibos");
+        
+        // Si WebRootPath es null (como en APIs), usar ContentRootPath
+        var basePath = _environment.WebRootPath ?? _environment.ContentRootPath;
+        _recibosPath = Path.Combine(basePath, "recibos");
         
         // Crear directorio si no existe
         if (!Directory.Exists(_recibosPath))

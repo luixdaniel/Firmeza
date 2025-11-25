@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -64,7 +65,8 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
-        ClockSkew = TimeSpan.Zero
+        ClockSkew = TimeSpan.Zero,
+        RoleClaimType = ClaimTypes.Role // CRÍTICO: Para que reconozca los roles en el JWT
     };
 });
 
@@ -195,6 +197,34 @@ using (var scope = app.Services.CreateScope())
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         
+        // ⚠️ MIGRACIÓN: Actualizar rol "Administrador" a "Admin" si existe
+        var oldRole = await roleManager.FindByNameAsync("Administrador");
+        if (oldRole != null)
+        {
+            Console.WriteLine("🔄 Migrando rol 'Administrador' a 'Admin'...");
+            
+            // Obtener usuarios con el rol viejo
+            var usersInOldRole = await userManager.GetUsersInRoleAsync("Administrador");
+            
+            // Crear el nuevo rol si no existe
+            if (!await roleManager.RoleExistsAsync("Admin"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("Admin"));
+            }
+            
+            // Migrar usuarios al nuevo rol
+            foreach (var user in usersInOldRole)
+            {
+                await userManager.RemoveFromRoleAsync(user, "Administrador");
+                await userManager.AddToRoleAsync(user, "Admin");
+                Console.WriteLine($"✅ Usuario {user.Email} migrado al rol 'Admin'");
+            }
+            
+            // Eliminar el rol viejo
+            await roleManager.DeleteAsync(oldRole);
+            Console.WriteLine("✅ Rol 'Administrador' eliminado");
+        }
+        
         // Crear roles si no existen
         string[] roles = { "Admin", "Cliente" };
         foreach (var role in roles)
@@ -202,6 +232,7 @@ using (var scope = app.Services.CreateScope())
             if (!await roleManager.RoleExistsAsync(role))
             {
                 await roleManager.CreateAsync(new IdentityRole(role));
+                Console.WriteLine($"✅ Rol '{role}' creado");
             }
         }
         
@@ -220,11 +251,21 @@ using (var scope = app.Services.CreateScope())
                 Apellido = "Sistema"
             };
             
-            var result = await userManager.CreateAsync(adminUser, "Admin123!");
+            var result = await userManager.CreateAsync(adminUser, "Admin123$");
             if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(adminUser, "Admin");
-                Console.WriteLine("✅ Usuario administrador creado: admin@firmeza.com / Admin123!");
+                Console.WriteLine("✅ Usuario administrador creado: admin@firmeza.com / Admin123$");
+            }
+        }
+        else
+        {
+            // Verificar que el admin tenga el rol correcto
+            var isInAdminRole = await userManager.IsInRoleAsync(adminUser, "Admin");
+            if (!isInAdminRole)
+            {
+                await userManager.AddToRoleAsync(adminUser, "Admin");
+                Console.WriteLine($"✅ Rol 'Admin' asignado a {adminEmail}");
             }
         }
     }

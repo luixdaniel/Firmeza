@@ -22,7 +22,7 @@ namespace Firmeza.Web.Data.Seed
 
             // Usuario administrador por defecto (mismas credenciales que la API)
             var adminEmail = "admin@firmeza.com";
-            var adminPass = "Admin123!";
+            var adminPass = "Admin123$";
 
             if (await userManager.FindByEmailAsync(adminEmail) == null)
             {

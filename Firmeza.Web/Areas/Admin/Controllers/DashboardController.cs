@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Firmeza.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Roles = "Administrador")]
+[Authorize(Roles = "Admin")]
 public class DashboardController : Controller
 {
     private readonly AppDbContext _db;

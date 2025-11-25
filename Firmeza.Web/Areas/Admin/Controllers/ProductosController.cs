@@ -8,7 +8,7 @@ using Firmeza.Web.Areas.Admin.ViewModels;
 namespace Firmeza.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Administrador")]
+    [Authorize(Roles = "Admin")]
     public class ProductosController : Controller
     {
         private readonly IProductoService _productoService;

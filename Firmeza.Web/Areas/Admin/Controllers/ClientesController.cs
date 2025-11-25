@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Firmeza.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Roles = "Administrador")]
+[Authorize(Roles = "Admin")]
 public class ClientesController : Controller
 {
     private readonly IClienteService _clienteService;

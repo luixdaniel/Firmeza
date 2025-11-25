@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Firmeza.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Roles = "Administrador")]
+[Authorize(Roles = "Admin")]
 public class ImportacionController : Controller
 {
     private readonly IImportacionMasivaService _importacionService;
