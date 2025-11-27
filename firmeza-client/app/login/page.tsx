@@ -25,7 +25,7 @@ export default function LoginPage() {
       localStorage.setItem('user', JSON.stringify(response));
       
       // Redirigir a la tienda de clientes
-      router.push('/cliente/tienda');
+      router.push('/clientes/tienda');
     } catch (err: any) {
       console.error('Error de login:', err);
       setError(err.response?.data?.message || 'Credenciales inválidas. Por favor verifica tus datos.');

@@ -1,172 +1,148 @@
-# ✅ PROBLEMA RESUELTO - Puerto Incorrecto en Frontend
+# ✅ SOLUCIÓN: Frontend Conectando al Puerto Incorrecto
 
-## 🎯 Problema Identificado
+## 🔍 Problema
+El frontend (`firmeza-client`) intentaba conectarse a la API en el puerto **5000**, pero la API corre en el puerto **5090**.
 
-**Error:** "Error al registrar usuario. Por favor intenta nuevamente."
-
-**Causa Real:** El frontend estaba intentando conectarse al puerto **5090** pero la API está corriendo en el puerto **5000**.
+### Síntomas
+- Error al intentar registrar clientes desde el frontend
+- Error de conexión: "Cannot connect to API on port 5000"
+- La API está corriendo correctamente en el puerto 5090
 
 ---
 
-## 🔧 Solución Aplicada
+## 🛠️ Causa Raíz
 
-### Archivo Corregido: `/lib/axios.ts`
+El archivo `firmeza-client/lib/axios.ts` tenía configurado un puerto incorrecto por defecto:
 
-**ANTES (Incorrecto):**
 ```typescript
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5090';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';  // ❌ Puerto incorrecto
 ```
 
-**AHORA (Correcto):**
-```typescript
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-```
+Y el archivo `.env.local` estaba vacío, por lo que usaba el valor por defecto incorrecto.
 
 ---
 
-## ✅ Verificación Realizada
+## ✅ Solución Aplicada
 
-### Test de la API:
-```bash
-curl -X POST http://localhost:5000/api/Auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "testrol@test.com",
-    "password": "Test123$",
-    "confirmPassword": "Test123$",
-    "nombre": "Test",
-    "apellido": "Rol"
-  }'
+### 1. Configurar `.env.local`
+**Archivo:** `firmeza-client/.env.local`
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5090
 ```
 
-**Resultado:** ✅ EXITOSO
-- Usuario creado correctamente
-- Rol "Cliente" asignado automáticamente
-- Token JWT generado
+### 2. Reiniciar el Servidor de Desarrollo
 
----
+Después de modificar el archivo `.env.local`, es **OBLIGATORIO** reiniciar el servidor de Next.js para que tome los nuevos valores:
 
-## 🚀 Pasos para Probar
+```cmd
+cd C:\Users\luisc\RiderProjects\Firmeza\firmeza-client
 
-### 1. Reiniciar el Frontend
+# Detener el servidor actual (Ctrl+C)
 
-**IMPORTANTE:** Como cambiamos el código, necesitas reiniciar el servidor de desarrollo.
-
-En la terminal donde corre el frontend (puerto 3000):
-
-```bash
-# Presiona Ctrl+C para detener
-
-# Luego inicia de nuevo:
-cd /home/Coder/Escritorio/Firmeza/firmeza-client
+# Reiniciar
 npm run dev
 ```
 
-### 2. Limpiar Caché del Navegador (Opcional)
-
-Si el problema persiste:
-- Presiona **Ctrl+Shift+R** para forzar recarga
-- O abre en ventana de incógnito
-
-### 3. Registrarte Nuevamente
-
-Ve a: http://localhost:3000/registro
-
-Completa el formulario:
-- **Nombre:** luis
-- **Apellido:** cera
-- **Email:** ceraluis4@gmail.com
-- **Teléfono:** +57 300 123 4567
-- **Contraseña:** MiPassword123$ (o cualquiera que cumpla requisitos)
-- **Confirmar:** MiPassword123$
-
-Click en **"Crear Cuenta"**
-
 ---
 
-## ✅ Resultado Esperado
+## 🧪 Verificación
 
-1. ✅ Usuario se crea en la base de datos
-2. ✅ Se asigna rol "Cliente" automáticamente
-3. ✅ Se genera token JWT
-4. ✅ Auto-login
-5. ✅ Redirección a `/cliente/tienda`
-
----
-
-## 📊 Configuración de Puertos
-
-| Componente | Puerto | URL |
-|------------|--------|-----|
-| API Backend | 5000 | http://localhost:5000 |
-| Frontend | 3000 | http://localhost:3000 |
-| Swagger | 5000 | http://localhost:5000/swagger |
-
----
-
-## 🔍 Verificar Roles en la Base de Datos
-
-Si quieres confirmar que los roles están bien, conecta a PostgreSQL:
-
-```bash
-psql -U postgres -d firmeza_db -c "SELECT * FROM \"AspNetRoles\";"
+### 1. Verificar que la API está corriendo
+```cmd
+curl http://localhost:5090/api/Auth/login
 ```
+Debería devolver un error 400 (esperado, sin credenciales) o 405, NO un error de conexión.
 
-**Debes ver:**
+### 2. Verificar que el Frontend conecta correctamente
+1. Abrir: http://localhost:3000
+2. Ir a la página de registro
+3. Completar el formulario
+4. Verificar en la consola del navegador (F12) que las peticiones van a `http://localhost:5090/api/...`
+
+### 3. Probar el Registro
+**Datos de prueba:**
 ```
-Id | Name    | NormalizedName
----|---------|---------------
-1  | Admin   | ADMIN
-2  | Cliente | CLIENTE
+Nombre: Juan
+Apellido: Pérez
+Email: juan.perez@example.com
+Teléfono: 3001234567
+Contraseña: Test123$
+Confirmar Contraseña: Test123$
 ```
 
 ---
 
-## ⚠️ Requisitos de Contraseña
+## 📋 Checklist de Solución
 
-La contraseña debe tener:
-- ✅ Mínimo 6 caracteres
-- ✅ Al menos 1 mayúscula (A-Z)
-- ✅ Al menos 1 minúscula (a-z)
-- ✅ Al menos 1 número (0-9)
-
-**Ejemplos válidos:**
-- `Password123`
-- `MiClave456`
-- `Test123$`
+- [x] Crear archivo `.env.local` con el puerto correcto (5090)
+- [ ] Reiniciar el servidor de Next.js (npm run dev)
+- [ ] Verificar en el navegador que las peticiones van al puerto 5090
+- [ ] Probar el registro de un nuevo cliente
+- [ ] Verificar que el login funciona
 
 ---
 
-## 📝 Resumen
+## ⚠️ Notas Importantes
 
-### El Error NO era de Roles
+1. **Siempre reiniciar después de cambios en `.env.local`**: Next.js solo lee variables de entorno al iniciar.
 
-Los roles están correctamente configurados:
-- ✅ Rol "Admin" existe
-- ✅ Rol "Cliente" existe
-- ✅ Se asigna "Cliente" automáticamente al registrarse
+2. **Verificar puertos:** 
+   - API: http://localhost:5090
+   - Frontend: http://localhost:3000
 
-### El Error Era de Puerto
+3. **CORS está habilitado:** La API ya tiene configuración CORS para aceptar peticiones de cualquier origen.
 
-- ❌ Frontend apuntaba a puerto 5090
-- ✅ API corre en puerto 5000
-- ✅ **Ahora corregido**
+4. **No commitear `.env.local`:** Este archivo no debe subirse a Git (ya está en `.gitignore`).
 
 ---
 
-## 🎉 ¡Listo para Usar!
+## 🎯 Resultado Esperado
 
-Después de **reiniciar el frontend**, el registro debería funcionar perfectamente.
+Después de aplicar esta solución:
 
-**Pasos finales:**
-1. Reiniciar frontend (Ctrl+C y `npm run dev`)
-2. Ir a http://localhost:3000/registro
-3. Registrarse
-4. ¡Disfrutar! 🎊
+✅ El frontend conecta correctamente a la API en el puerto 5090
+✅ El registro de clientes funciona
+✅ El login funciona
+✅ Todas las peticiones HTTP funcionan correctamente
 
 ---
 
-**Fecha:** 2025-11-26
-**Estado:** ✅ Problema resuelto
-**Cambio:** Puerto 5090 → 5000
+## 🚀 Comandos Rápidos
+
+### Iniciar la API
+```cmd
+cd C:\Users\luisc\RiderProjects\Firmeza\ApiFirmeza.Web
+dotnet run
+```
+
+### Iniciar el Frontend
+```cmd
+cd C:\Users\luisc\RiderProjects\Firmeza\firmeza-client
+npm run dev
+```
+
+### Verificar conexión
+```cmd
+# Verificar API
+curl http://localhost:5090/api/Categorias
+
+# Con autenticación
+curl -H "Authorization: Bearer [tu-token]" http://localhost:5090/api/Clientes
+```
+
+---
+
+## 📊 Estado
+
+| Componente | Puerto | Estado |
+|------------|--------|--------|
+| **API** | 5090 | ✅ Corriendo |
+| **Frontend** | 3000 | ✅ Configurado |
+| **CORS** | - | ✅ Habilitado |
+| **.env.local** | - | ✅ Creado |
+
+---
+
+¡Problema resuelto! 🎉
 

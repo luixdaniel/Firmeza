@@ -1,5 +1,7 @@
 using ApiFirmeza.Web.DTOs;
+using Firmeza.Web.Data.Entities;
 using Firmeza.Web.Identity;
+using Firmeza.Web.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -18,17 +20,20 @@ public class AuthController : ControllerBase
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AuthController> _logger;
+    private readonly IClienteService _clienteService;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IConfiguration configuration,
-        ILogger<AuthController> logger)
+        ILogger<AuthController> logger,
+        IClienteService clienteService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _configuration = configuration;
         _logger = logger;
+        _clienteService = clienteService;
     }
 
     /// <summary>
@@ -68,6 +73,24 @@ public class AuthController : ControllerBase
 
             // Asignar rol de Cliente
             await _userManager.AddToRoleAsync(user, "Cliente");
+
+            // Crear registro de Cliente en la base de datos
+            var cliente = new Cliente
+            {
+                Nombre = model.Nombre,
+                Apellido = model.Apellido,
+                Email = model.Email,
+                Telefono = model.Telefono,
+                Documento = model.Documento,
+                Direccion = model.Direccion,
+                Ciudad = model.Ciudad ?? "No especificada",
+                Pais = model.Pais ?? "Colombia",
+                ApplicationUserId = user.Id,
+                FechaRegistro = DateTime.UtcNow,
+                Activo = true
+            };
+
+            await _clienteService.CreateAsync(cliente);
 
             // Generar token
             var token = await GenerateJwtToken(user);

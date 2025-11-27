@@ -68,7 +68,7 @@ export default function RegistroPage() {
       localStorage.setItem('user', JSON.stringify(response));
       
       // Redirigir a la tienda de clientes
-      router.push('/cliente/tienda');
+      router.push('/clientes/tienda');
     } catch (err: any) {
       console.error('Error de registro completo:', err);
       console.error('Error response:', err.response);
@@ -76,7 +76,7 @@ export default function RegistroPage() {
       
       // Si no hay respuesta del servidor
       if (!err.response) {
-        setError('No se puede conectar con el servidor. Verifica que la API esté corriendo en http://localhost:5000');
+        setError('No se puede conectar con el servidor. Verifica que la API esté corriendo');
         return;
       }
       
@@ -271,7 +271,7 @@ export default function RegistroPage() {
         <div className="mt-6 text-center space-y-2">
           <p className="text-sm text-gray-600">
             ¿Ya tienes una cuenta?{' '}
-            <Link href="/login" className="text-green-600 hover:text-green-700 font-semibold">
+            <Link href="/auth/login" className="text-green-600 hover:text-green-700 font-semibold">
               Iniciar Sesión
             </Link>
           </p>

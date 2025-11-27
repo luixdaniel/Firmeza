@@ -26,6 +26,18 @@ public class RegisterDto
     
     [Phone(ErrorMessage = "El teléfono no es válido")]
     public string? Telefono { get; set; }
+    
+    public string? Documento { get; set; }
+    
+    [Required(ErrorMessage = "La dirección es requerida")]
+    [StringLength(250)]
+    public string Direccion { get; set; } = string.Empty;
+    
+    [StringLength(100)]
+    public string? Ciudad { get; set; }
+    
+    [StringLength(100)]
+    public string? Pais { get; set; }
 }
 
 public class LoginDto

@@ -11,6 +11,10 @@ export interface RegisterRequest {
   nombre: string;
   apellido: string;
   telefono?: string;
+  documento?: string;
+  direccion: string;
+  ciudad?: string;
+  pais?: string;
 }
 
 export interface AuthResponse {

@@ -26,6 +26,11 @@ export const clientesService = {
     return response.data;
   },
 
+  async getPerfil(): Promise<Cliente> {
+    const response = await api.get<Cliente>('/Clientes/perfil');
+    return response.data;
+  },
+
   async getById(id: number): Promise<Cliente> {
     const response = await api.get<Cliente>(`/Clientes/${id}`);
     return response.data;
@@ -49,6 +54,11 @@ export const clientesService = {
 export const ventasService = {
   async getAll(): Promise<Venta[]> {
     const response = await api.get<Venta[]>('/Ventas');
+    return response.data;
+  },
+
+  async getMisCompras(): Promise<Venta[]> {
+    const response = await api.get<Venta[]>('/Ventas/mis-compras');
     return response.data;
   },
 

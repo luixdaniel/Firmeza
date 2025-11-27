@@ -1,54 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { clientesService } from '@/services/api';
-import { Cliente } from '@/types';
 
 export default function ClientesPage() {
   const router = useRouter();
-  const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   useEffect(() => {
-    // Verificar autenticación
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
+    // Redirigir automáticamente a la tienda
+    router.push('/clientes/tienda');
+  }, [router]);
 
-    loadClientes();
-  }, []);
-
-  const loadClientes = async () => {
-    try {
-      setLoading(true);
-      const data = await clientesService.getAll();
-      setClientes(data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al cargar clientes');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/login');
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando clientes...</p>
-        </div>
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Redirigiendo a la tienda...</p>
       </div>
-    );
+    </div>
+  );
   }
 
   return (

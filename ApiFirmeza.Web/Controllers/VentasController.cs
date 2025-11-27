@@ -98,6 +98,40 @@ public class VentasController : ControllerBase
     }
 
     /// <summary>
+    /// Obtiene las ventas del cliente autenticado actual
+    /// </summary>
+    [HttpGet("mis-compras")]
+    [Authorize(Roles = "Cliente,Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<VentaDto>>> GetMisCompras()
+    {
+        try
+        {
+            // Obtener el email del usuario autenticado
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email))
+                return NotFound("No se pudo obtener el email del usuario autenticado");
+
+            // Buscar el cliente por email
+            var clientes = await _clienteService.GetAllAsync();
+            var cliente = clientes.FirstOrDefault(c => c.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+            
+            if (cliente == null)
+                return Ok(new List<VentaDto>()); // Retornar lista vacía si no hay cliente
+
+            // Obtener las ventas del cliente
+            var ventas = await _ventaService.GetByClienteIdAsync(cliente.Id);
+            var ventasDto = _mapper.Map<IEnumerable<VentaDto>>(ventas);
+            return Ok(ventasDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener compras del cliente");
+            return StatusCode(500, "Error interno del servidor");
+        }
+    }
+
+    /// <summary>
     /// Obtiene ventas por rango de fechas
     /// </summary>
     [HttpGet("fecha-rango")]

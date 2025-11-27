@@ -162,6 +162,38 @@ public class ClientesController : ControllerBase
     }
 
     /// <summary>
+    /// Obtiene la información del cliente por email (para el perfil del usuario autenticado)
+    /// </summary>
+    [HttpGet("perfil")]
+    [Authorize(Roles = "Cliente,Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ClienteDto>> GetPerfil()
+    {
+        try
+        {
+            // Obtener el email del usuario autenticado
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email))
+                return NotFound("No se pudo obtener el email del usuario autenticado");
+
+            var clientes = await _clienteService.GetAllAsync();
+            var cliente = clientes.FirstOrDefault(c => c.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+            
+            if (cliente == null)
+                return NotFound("No se encontró el perfil del cliente");
+
+            var clienteDto = _mapper.Map<ClienteDto>(cliente);
+            return Ok(clienteDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al obtener perfil del cliente");
+            return StatusCode(500, "Error interno del servidor");
+        }
+    }
+
+    /// <summary>
     /// Elimina un cliente
     /// </summary>
     [HttpDelete("{id}")]
