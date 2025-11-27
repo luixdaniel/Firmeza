@@ -1,10 +1,15 @@
 import { api } from '@/lib/axios';
-import { LoginRequest, AuthResponse, Cliente, Venta, Producto, Categoria } from '@/types';
+import { LoginRequest, RegisterRequest, AuthResponse, Cliente, Venta, Producto, Categoria } from '@/types';
 
 // Auth Services
 export const authService = {
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>('/Auth/login', credentials);
+    return response.data;
+  },
+
+  async register(data: RegisterRequest): Promise<AuthResponse> {
+    const response = await api.post<AuthResponse>('/Auth/register', data);
     return response.data;
   },
 

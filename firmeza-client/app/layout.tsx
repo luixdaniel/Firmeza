@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Firmeza - Sistema de Gestión',
-  description: 'Sistema de gestión de clientes, productos y ventas',
+  title: 'Firmeza - Portal de Clientes',
+  description: 'Tu tienda en línea. Explora productos, realiza compras y gestiona tus pedidos',
 }
 
 export default function RootLayout({

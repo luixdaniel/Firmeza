@@ -4,6 +4,15 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  nombre: string;
+  apellido: string;
+  telefono?: string;
+}
+
 export interface AuthResponse {
   token: string;
   expiration: string;
