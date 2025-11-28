@@ -44,10 +44,13 @@ public class MappingProfile : Profile
                     : src.Cliente));
         
         CreateMap<VentaCreateDto, Venta>()
-            .ForMember(dest => dest.FechaVenta, opt => opt.MapFrom(src => src.Fecha))
-            .ForMember(dest => dest.NumeroFactura, opt => opt.MapFrom(src => Guid.NewGuid().ToString().Substring(0, 8).ToUpper()))
-            .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => "Completada"))
-            .ForMember(dest => dest.Cliente, opt => opt.Ignore());
+            .ForMember(dest => dest.FechaVenta, opt => opt.Ignore()) // El controlador lo establece
+            .ForMember(dest => dest.NumeroFactura, opt => opt.Ignore()) // El controlador lo establece
+            .ForMember(dest => dest.Estado, opt => opt.Ignore()) // El controlador lo establece
+            .ForMember(dest => dest.Cliente, opt => opt.Ignore()) // El controlador lo establece
+            .ForMember(dest => dest.ClienteEntity, opt => opt.Ignore())
+            .ForMember(dest => dest.Vendedor, opt => opt.Ignore())
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
         
         CreateMap<VentaUpdateDto, Venta>()
             .ForMember(dest => dest.FechaVenta, opt => opt.MapFrom(src => src.Fecha));

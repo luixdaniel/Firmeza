@@ -17,6 +17,7 @@ export default function CarritoPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [metodoPago, setMetodoPago] = useState('Efectivo');
 
   useEffect(() => {
     loadCart();
@@ -69,17 +70,16 @@ export default function CarritoPage() {
       setLoading(true);
       setError('');
 
-      // Obtener el clienteId del usuario actual
-      const userData = localStorage.getItem('user');
-      if (!userData) {
-        router.push('/auth/login');
+      // Verificar que el usuario esté autenticado
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/login');
         return;
       }
-
-      const user = JSON.parse(userData);
       
       // Crear la venta
       const ventaData = {
+        metodoPago: metodoPago,
         detalles: cart.map((item) => ({
           productoId: item.productoId,
           cantidad: item.cantidad,
@@ -99,7 +99,24 @@ export default function CarritoPage() {
       router.push('/clientes/mis-compras');
     } catch (err: any) {
       console.error('Error al procesar la compra:', err);
-      setError(err.response?.data?.message || 'Error al procesar la compra. Intenta nuevamente.');
+      console.error('Respuesta del servidor:', err.response?.data);
+      
+      let errorMessage = 'Error al procesar la compra. ';
+      
+      if (err.response?.data?.message) {
+        errorMessage += err.response.data.message;
+      } else if (err.response?.data?.error) {
+        errorMessage += err.response.data.error;
+      } else if (err.response?.status === 401) {
+        errorMessage = 'No estás autenticado. Por favor, inicia sesión nuevamente.';
+        setTimeout(() => router.push('/login'), 2000);
+      } else if (err.response?.status === 400) {
+        errorMessage += 'Datos inválidos. Verifica tu carrito e intenta nuevamente.';
+      } else {
+        errorMessage += 'Intenta nuevamente.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -229,6 +246,22 @@ export default function CarritoPage() {
                 <span>Total</span>
                 <span>${(calculateTotal() * 1.19).toLocaleString('es-CO')}</span>
               </div>
+            </div>
+
+            {/* Método de pago */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Método de pago
+              </label>
+              <select
+                value={metodoPago}
+                onChange={(e) => setMetodoPago(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              >
+                <option value="Efectivo">Efectivo</option>
+                <option value="Tarjeta">Tarjeta de crédito/débito</option>
+                <option value="Transferencia">Transferencia bancaria</option>
+              </select>
             </div>
 
             <button

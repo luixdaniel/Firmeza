@@ -24,10 +24,12 @@ public class DetalleVentaDto
 
 public class VentaCreateDto
 {
-    [Required(ErrorMessage = "El cliente es requerido")]
-    public int ClienteId { get; set; }
+    // ClienteId es opcional - se obtiene automáticamente del usuario autenticado si no se proporciona
+    public int ClienteId { get; set; } = 0;
     
     public DateTime Fecha { get; set; } = DateTime.UtcNow;
+    
+    public string MetodoPago { get; set; } = "Efectivo"; // Efectivo, Tarjeta, Transferencia
     
     [Required(ErrorMessage = "Debe incluir al menos un detalle de venta")]
     [MinLength(1, ErrorMessage = "Debe incluir al menos un producto")]

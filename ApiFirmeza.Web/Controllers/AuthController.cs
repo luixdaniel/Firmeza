@@ -40,6 +40,7 @@ public class AuthController : ControllerBase
     /// Registrar un nuevo cliente
     /// </summary>
     [HttpPost("register")]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterDto model)
@@ -159,6 +160,7 @@ public class AuthController : ControllerBase
     /// Iniciar sesión
     /// </summary>
     [HttpPost("login")]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginDto model)

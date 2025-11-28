@@ -63,13 +63,13 @@ export default function Home() {
             ) : (
               <>
                 <Link 
-                  href="/auth/login" 
+                  href="/login" 
                   className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   Iniciar Sesión
                 </Link>
                 <Link 
-                  href="/auth/register" 
+                  href="/registro" 
                   className="bg-white hover:bg-gray-50 text-green-600 px-8 py-4 rounded-lg text-lg font-semibold border-2 border-green-600 shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   Registrarse
@@ -167,13 +167,13 @@ export default function Home() {
             </p>
             <div className="flex justify-center gap-4">
               <Link 
-                href="/auth/register" 
+                href="/registro" 
                 className="inline-block bg-green-600 hover:bg-green-700 text-white px-10 py-4 rounded-lg text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Crear Cuenta →
               </Link>
               <Link 
-                href="/auth/login" 
+                href="/login" 
                 className="inline-block bg-white hover:bg-gray-50 text-green-600 border-2 border-green-600 px-10 py-4 rounded-lg text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Iniciar Sesión

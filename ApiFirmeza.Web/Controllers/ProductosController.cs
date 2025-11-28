@@ -25,7 +25,7 @@ public class ProductosController : ControllerBase
         _mapper = mapper;
         _logger = logger;
     }
-
+    
     /// <summary>
     /// Obtiene todos los productos
     /// </summary>

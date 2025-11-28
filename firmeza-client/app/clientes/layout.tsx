@@ -22,7 +22,7 @@ export default function ClientesLayout({
     const userData = localStorage.getItem('user');
 
     if (!token) {
-      router.push('/auth/login');
+      router.push('/login');
       return;
     }
 
@@ -32,7 +32,7 @@ export default function ClientesLayout({
 
       // Verificar que sea un cliente
       if (!parsedUser.roles?.includes('Cliente') && !parsedUser.roles?.includes('Admin')) {
-        router.push('/auth/login');
+        router.push('/login');
       }
     }
 
@@ -54,7 +54,7 @@ export default function ClientesLayout({
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('cart');
-    router.push('/auth/login');
+    router.push('/login');
   };
 
   const navigation = [

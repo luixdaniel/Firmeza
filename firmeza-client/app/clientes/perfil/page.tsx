@@ -18,7 +18,7 @@ export default function PerfilPage() {
     const userData = localStorage.getItem('user');
 
     if (!token || !userData) {
-      router.push('/auth/login');
+      router.push('/login');
       return;
     }
 

@@ -167,10 +167,33 @@ public class VentasController : ControllerBase
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Validar que el cliente existe
-            var cliente = await _clienteService.GetByIdAsync(ventaDto.ClienteId);
+            // Obtener el cliente del usuario autenticado
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email))
+                return BadRequest("No se pudo obtener el email del usuario autenticado");
+
+            var clientes = await _clienteService.GetAllAsync();
+            var cliente = clientes.FirstOrDefault(c => c.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+            
             if (cliente == null)
-                return BadRequest($"Cliente con ID {ventaDto.ClienteId} no encontrado");
+                return BadRequest("Cliente no encontrado. Por favor, complete su perfil primero.");
+
+            // Si el DTO no tiene ClienteId, usar el del usuario autenticado
+            if (ventaDto.ClienteId == 0)
+            {
+                ventaDto.ClienteId = cliente.Id;
+            }
+            // Si tiene ClienteId, verificar que sea válido
+            else if (ventaDto.ClienteId != cliente.Id)
+            {
+                // Solo Admin puede crear ventas para otros clientes
+                if (!User.IsInRole("Admin"))
+                    return BadRequest("No tienes permiso para crear ventas para otros clientes");
+                    
+                cliente = await _clienteService.GetByIdAsync(ventaDto.ClienteId);
+                if (cliente == null)
+                    return BadRequest($"Cliente con ID {ventaDto.ClienteId} no encontrado");
+            }
 
             // Validar que todos los productos existen y hay stock
             foreach (var detalle in ventaDto.Detalles)
@@ -185,6 +208,11 @@ public class VentasController : ControllerBase
 
             var venta = _mapper.Map<Venta>(ventaDto);
             venta.Cliente = $"{cliente.Nombre} {cliente.Apellido}";
+            venta.ClienteId = cliente.Id;
+            venta.MetodoPago = string.IsNullOrEmpty(ventaDto.MetodoPago) ? "Efectivo" : ventaDto.MetodoPago;
+            venta.Estado = "Completada";
+            venta.NumeroFactura = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+            venta.FechaVenta = DateTime.UtcNow;
             
             // Calcular totales
             decimal total = 0;
@@ -198,6 +226,17 @@ public class VentasController : ControllerBase
             venta.IVA = total * 0.19m; // 19% de IVA
             venta.Total = total + venta.IVA;
 
+            // Actualizar el stock de los productos
+            foreach (var detalle in venta.Detalles)
+            {
+                var producto = await _productoService.GetByIdAsync(detalle.ProductoId);
+                if (producto != null)
+                {
+                    producto.Stock -= detalle.Cantidad;
+                    await _productoService.UpdateAsync(producto);
+                }
+            }
+
             await _ventaService.CreateAsync(venta);
 
             var ventaCreada = _mapper.Map<VentaDto>(venta);
@@ -205,12 +244,12 @@ public class VentasController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al crear venta");
-            return StatusCode(500, "Error interno del servidor");
+            return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
         }
     }
 
