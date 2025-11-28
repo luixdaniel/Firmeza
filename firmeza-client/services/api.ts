@@ -26,13 +26,13 @@ export const clientesService = {
     return response.data;
   },
 
-  async getPerfil(): Promise<Cliente> {
-    const response = await api.get<Cliente>('/Clientes/perfil');
+  async getById(id: number): Promise<Cliente> {
+    const response = await api.get<Cliente>(`/Clientes/${id}`);
     return response.data;
   },
 
-  async getById(id: number): Promise<Cliente> {
-    const response = await api.get<Cliente>(`/Clientes/${id}`);
+  async getPerfil(): Promise<Cliente> {
+    const response = await api.get<Cliente>('/Clientes/perfil');
     return response.data;
   },
 
@@ -57,13 +57,13 @@ export const ventasService = {
     return response.data;
   },
 
-  async getMisCompras(): Promise<Venta[]> {
-    const response = await api.get<Venta[]>('/Ventas/mis-compras');
+  async getById(id: number): Promise<Venta> {
+    const response = await api.get<Venta>(`/Ventas/${id}`);
     return response.data;
   },
 
-  async getById(id: number): Promise<Venta> {
-    const response = await api.get<Venta>(`/Ventas/${id}`);
+  async getMisCompras(): Promise<Venta[]> {
+    const response = await api.get<Venta[]>('/Ventas/mis-compras');
     return response.data;
   },
 

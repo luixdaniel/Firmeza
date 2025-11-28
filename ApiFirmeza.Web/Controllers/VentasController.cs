@@ -195,8 +195,14 @@ public class VentasController : ControllerBase
                     return BadRequest($"Cliente con ID {ventaDto.ClienteId} no encontrado");
             }
 
-            // Validar que todos los productos existen y hay stock
-            foreach (var detalle in ventaDto.Detalles)
+            // Mapear DTO a entidad
+            var venta = _mapper.Map<Venta>(ventaDto);
+            venta.Cliente = $"{cliente.Nombre} {cliente.Apellido}";
+            venta.ClienteId = cliente.Id;
+            venta.MetodoPago = string.IsNullOrEmpty(ventaDto.MetodoPago) ? "Efectivo" : ventaDto.MetodoPago;
+            
+            // Validar stock de productos antes de crear la venta
+            foreach (var detalle in venta.Detalles)
             {
                 var producto = await _productoService.GetByIdAsync(detalle.ProductoId);
                 if (producto == null)
@@ -206,38 +212,8 @@ public class VentasController : ControllerBase
                     return BadRequest($"Stock insuficiente para el producto '{producto.Nombre}'. Stock disponible: {producto.Stock}");
             }
 
-            var venta = _mapper.Map<Venta>(ventaDto);
-            venta.Cliente = $"{cliente.Nombre} {cliente.Apellido}";
-            venta.ClienteId = cliente.Id;
-            venta.MetodoPago = string.IsNullOrEmpty(ventaDto.MetodoPago) ? "Efectivo" : ventaDto.MetodoPago;
-            venta.Estado = "Completada";
-            venta.NumeroFactura = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
-            venta.FechaVenta = DateTime.UtcNow;
-            
-            // Calcular totales
-            decimal total = 0;
-            foreach (var detalle in venta.Detalles)
-            {
-                detalle.Subtotal = detalle.Cantidad * detalle.PrecioUnitario;
-                total += detalle.Subtotal;
-            }
-            
-            venta.Subtotal = total;
-            venta.IVA = total * 0.19m; // 19% de IVA
-            venta.Total = total + venta.IVA;
-
-            // Actualizar el stock de los productos
-            foreach (var detalle in venta.Detalles)
-            {
-                var producto = await _productoService.GetByIdAsync(detalle.ProductoId);
-                if (producto != null)
-                {
-                    producto.Stock -= detalle.Cantidad;
-                    await _productoService.UpdateAsync(producto);
-                }
-            }
-
-            await _ventaService.CreateAsync(venta);
+            // Usar CrearVentaConDetallesAsync que maneja todo el proceso
+            await _ventaService.CrearVentaConDetallesAsync(venta);
 
             var ventaCreada = _mapper.Map<VentaDto>(venta);
             return CreatedAtAction(nameof(GetById), new { id = venta.Id }, ventaCreada);

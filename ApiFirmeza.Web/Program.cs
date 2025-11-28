@@ -148,7 +148,8 @@ builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IVentaService, VentaService>();
-builder.Services.AddScoped<IPdfService, PdfService>();
+// PdfService comentado - no es necesario en la API
+// builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.AddScoped<IExportacionService, ExportacionService>();
 builder.Services.AddScoped<IImportacionMasivaService, ImportacionMasivaService>();
 

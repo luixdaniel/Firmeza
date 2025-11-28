@@ -44,13 +44,16 @@ public class MappingProfile : Profile
                     : src.Cliente));
         
         CreateMap<VentaCreateDto, Venta>()
-            .ForMember(dest => dest.FechaVenta, opt => opt.Ignore()) // El controlador lo establece
-            .ForMember(dest => dest.NumeroFactura, opt => opt.Ignore()) // El controlador lo establece
-            .ForMember(dest => dest.Estado, opt => opt.Ignore()) // El controlador lo establece
+            .ForMember(dest => dest.FechaVenta, opt => opt.Ignore()) // El servicio lo establece
+            .ForMember(dest => dest.NumeroFactura, opt => opt.Ignore()) // El servicio lo establece
+            .ForMember(dest => dest.Estado, opt => opt.Ignore()) // El servicio lo establece
             .ForMember(dest => dest.Cliente, opt => opt.Ignore()) // El controlador lo establece
             .ForMember(dest => dest.ClienteEntity, opt => opt.Ignore())
             .ForMember(dest => dest.Vendedor, opt => opt.Ignore())
-            .ForMember(dest => dest.Id, opt => opt.Ignore());
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.Subtotal, opt => opt.Ignore()) // El servicio lo calcula
+            .ForMember(dest => dest.IVA, opt => opt.Ignore()) // El servicio lo calcula
+            .ForMember(dest => dest.Total, opt => opt.Ignore()); // El servicio lo calcula
         
         CreateMap<VentaUpdateDto, Venta>()
             .ForMember(dest => dest.FechaVenta, opt => opt.MapFrom(src => src.Fecha));
@@ -62,7 +65,11 @@ public class MappingProfile : Profile
         
         CreateMap<DetalleVentaCreateDto, DetalleDeVenta>()
             .ForMember(dest => dest.Subtotal, 
-                opt => opt.MapFrom(src => src.Cantidad * src.PrecioUnitario));
+                opt => opt.MapFrom(src => src.Cantidad * src.PrecioUnitario))
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.VentaId, opt => opt.Ignore())
+            .ForMember(dest => dest.Venta, opt => opt.Ignore())
+            .ForMember(dest => dest.Producto, opt => opt.Ignore());
     }
 }
 

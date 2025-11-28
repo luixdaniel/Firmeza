@@ -100,9 +100,9 @@ export default function CarritoPage() {
     } catch (err: any) {
       console.error('Error al procesar la compra:', err);
       console.error('Respuesta del servidor:', err.response?.data);
-      
+
       let errorMessage = 'Error al procesar la compra. ';
-      
+
       if (err.response?.data?.message) {
         errorMessage += err.response.data.message;
       } else if (err.response?.data?.error) {
@@ -115,7 +115,7 @@ export default function CarritoPage() {
       } else {
         errorMessage += 'Intenta nuevamente.';
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);

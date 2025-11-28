@@ -9,9 +9,9 @@ public class VentaService : IVentaService
     private readonly IVentaRepository _ventaRepository;
     private readonly IProductoRepository _productoRepository;
     private readonly IClienteRepository _clienteRepository;
-    private readonly IPdfService _pdfService;
+    private readonly IPdfService? _pdfService;
 
-    public VentaService(IVentaRepository ventaRepository, IProductoRepository productoRepository, IClienteRepository clienteRepository, IPdfService pdfService)
+    public VentaService(IVentaRepository ventaRepository, IProductoRepository productoRepository, IClienteRepository clienteRepository, IPdfService? pdfService = null)
     {
         _ventaRepository = ventaRepository;
         _productoRepository = productoRepository;
@@ -133,24 +133,13 @@ public class VentaService : IVentaService
 
             Console.WriteLine($"Subtotal: {venta.Subtotal}, IVA: {venta.IVA}, Total: {venta.Total}");
 
-            // Buscar el cliente por nombre para asignar ClienteId
-            var todosLosClientes = await _clienteRepository.GetAllAsync();
-            var clienteEncontrado = todosLosClientes.FirstOrDefault(c => c.Nombre == venta.Cliente);
-            if (clienteEncontrado != null)
+            // El ClienteId ya debe venir establecido desde el controlador
+            if (venta.ClienteId <= 0)
             {
-                // Validar que el cliente esté activo
-                if (!clienteEncontrado.Activo)
-                {
-                    throw new InvalidOperationException($"El cliente '{clienteEncontrado.NombreCompleto}' está inactivo y no puede realizar compras. Por favor, active el cliente primero.");
-                }
-                
-                venta.ClienteId = clienteEncontrado.Id;
-                Console.WriteLine($"Cliente encontrado: ID={clienteEncontrado.Id}, Nombre={clienteEncontrado.Nombre}, Activo={clienteEncontrado.Activo}");
+                throw new ArgumentException("El ClienteId es requerido para crear una venta.");
             }
-            else
-            {
-                Console.WriteLine($"ADVERTENCIA: No se encontró cliente con nombre '{venta.Cliente}'");
-            }
+            
+            Console.WriteLine($"Cliente ID: {venta.ClienteId}, Nombre: {venta.Cliente}");
 
             // Generar número de factura
             venta.NumeroFactura = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
@@ -180,17 +169,20 @@ public class VentaService : IVentaService
 
             Console.WriteLine("Venta creada exitosamente!");
             
-            // Generar recibo PDF automáticamente
-            try
+            // Generar recibo PDF automáticamente (solo si el servicio está disponible)
+            if (_pdfService != null)
             {
-                Console.WriteLine("Generando recibo PDF...");
-                var rutaPdf = await _pdfService.GenerarReciboPdfAsync(venta);
-                Console.WriteLine($"Recibo PDF generado: {rutaPdf}");
-            }
-            catch (Exception pdfEx)
-            {
-                Console.WriteLine($"Error al generar recibo PDF: {pdfEx.Message}");
-                // No lanzamos excepción para no afectar la creación de la venta
+                try
+                {
+                    Console.WriteLine("Generando recibo PDF...");
+                    var rutaPdf = await _pdfService.GenerarReciboPdfAsync(venta);
+                    Console.WriteLine($"Recibo PDF generado: {rutaPdf}");
+                }
+                catch (Exception pdfEx)
+                {
+                    Console.WriteLine($"Error al generar recibo PDF: {pdfEx.Message}");
+                    // No lanzamos excepción para no afectar la creación de la venta
+                }
             }
             
             return venta;
