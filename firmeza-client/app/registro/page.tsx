@@ -12,6 +12,7 @@ export default function RegistroPage() {
     apellido: '',
     email: '',
     telefono: '',
+    direccion: '',
     password: '',
     confirmPassword: '',
   });
@@ -202,6 +203,23 @@ export default function RegistroPage() {
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition text-gray-900 bg-white placeholder-gray-400"
                 placeholder="+57 300 123 4567"
+              />
+            </div>
+
+            {/* Dirección */}
+            <div>
+              <label htmlFor="direccion" className="block text-sm font-medium text-gray-700 mb-1">
+                Dirección <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="direccion"
+                name="direccion"
+                type="text"
+                value={formData.direccion}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition text-gray-900 bg-white placeholder-gray-400"
+                placeholder="Calle 123 #45-67"
               />
             </div>
 

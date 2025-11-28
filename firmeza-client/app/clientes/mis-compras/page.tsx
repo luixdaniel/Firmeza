@@ -18,10 +18,35 @@ export default function MisComprasPage() {
   const loadVentas = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Cargando compras del cliente...');
+      
+      // Verificar token
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      console.log('📝 Token presente:', !!token);
+      console.log('👤 Usuario:', user);
+      
       const data = await ventasService.getMisCompras();
+      console.log('✅ Compras recibidas:', data);
+      console.log('📊 Cantidad de compras:', data.length);
+      
       setVentas(data.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al cargar compras');
+      console.error('❌ Error al cargar compras:', err);
+      console.error('❌ Response:', err.response);
+      console.error('❌ Status:', err.response?.status);
+      console.error('❌ Data:', err.response?.data);
+      
+      let errorMessage = 'Error al cargar compras';
+      if (err.response?.status === 401) {
+        errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

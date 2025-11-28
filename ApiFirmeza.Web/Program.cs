@@ -22,8 +22,12 @@ if (string.IsNullOrEmpty(connectionString))
     throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 }
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<AppDbContext>(options => 
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        npgsqlOptions.CommandTimeout(60); // 60 segundos de timeout
+        npgsqlOptions.EnableRetryOnFailure(3); // 3 reintentos
+    }));
 
 // Configuración de Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -199,30 +203,30 @@ using (var scope = app.Services.CreateScope())
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         
         // ⚠️ MIGRACIÓN: Actualizar rol "Administrador" a "Admin" si existe
-        var oldRole = await roleManager.FindByNameAsync("Administrador");
+        var oldRole = roleManager.FindByNameAsync("Administrador").GetAwaiter().GetResult();
         if (oldRole != null)
         {
             Console.WriteLine("🔄 Migrando rol 'Administrador' a 'Admin'...");
             
             // Obtener usuarios con el rol viejo
-            var usersInOldRole = await userManager.GetUsersInRoleAsync("Administrador");
+            var usersInOldRole = userManager.GetUsersInRoleAsync("Administrador").GetAwaiter().GetResult();
             
             // Crear el nuevo rol si no existe
-            if (!await roleManager.RoleExistsAsync("Admin"))
+            if (!roleManager.RoleExistsAsync("Admin").GetAwaiter().GetResult())
             {
-                await roleManager.CreateAsync(new IdentityRole("Admin"));
+                roleManager.CreateAsync(new IdentityRole("Admin")).GetAwaiter().GetResult();
             }
             
             // Migrar usuarios al nuevo rol
             foreach (var user in usersInOldRole)
             {
-                await userManager.RemoveFromRoleAsync(user, "Administrador");
-                await userManager.AddToRoleAsync(user, "Admin");
+                userManager.RemoveFromRoleAsync(user, "Administrador").GetAwaiter().GetResult();
+                userManager.AddToRoleAsync(user, "Admin").GetAwaiter().GetResult();
                 Console.WriteLine($"✅ Usuario {user.Email} migrado al rol 'Admin'");
             }
             
             // Eliminar el rol viejo
-            await roleManager.DeleteAsync(oldRole);
+            roleManager.DeleteAsync(oldRole).GetAwaiter().GetResult();
             Console.WriteLine("✅ Rol 'Administrador' eliminado");
         }
         
@@ -230,16 +234,16 @@ using (var scope = app.Services.CreateScope())
         string[] roles = { "Admin", "Cliente" };
         foreach (var role in roles)
         {
-            if (!await roleManager.RoleExistsAsync(role))
+            if (!roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
             {
-                await roleManager.CreateAsync(new IdentityRole(role));
+                roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter().GetResult();
                 Console.WriteLine($"✅ Rol '{role}' creado");
             }
         }
         
         // Crear usuario administrador por defecto
         var adminEmail = "admin@firmeza.com";
-        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+        var adminUser = userManager.FindByEmailAsync(adminEmail).GetAwaiter().GetResult();
         
         if (adminUser == null)
         {
@@ -252,20 +256,20 @@ using (var scope = app.Services.CreateScope())
                 Apellido = "Sistema"
             };
             
-            var result = await userManager.CreateAsync(adminUser, "Admin123$");
+            var result = userManager.CreateAsync(adminUser, "Admin123$").GetAwaiter().GetResult();
             if (result.Succeeded)
             {
-                await userManager.AddToRoleAsync(adminUser, "Admin");
+                userManager.AddToRoleAsync(adminUser, "Admin").GetAwaiter().GetResult();
                 Console.WriteLine("✅ Usuario administrador creado: admin@firmeza.com / Admin123$");
             }
         }
         else
         {
             // Verificar que el admin tenga el rol correcto
-            var isInAdminRole = await userManager.IsInRoleAsync(adminUser, "Admin");
+            var isInAdminRole = userManager.IsInRoleAsync(adminUser, "Admin").GetAwaiter().GetResult();
             if (!isInAdminRole)
             {
-                await userManager.AddToRoleAsync(adminUser, "Admin");
+                userManager.AddToRoleAsync(adminUser, "Admin").GetAwaiter().GetResult();
                 Console.WriteLine($"✅ Rol 'Admin' asignado a {adminEmail}");
             }
         }
@@ -278,4 +282,3 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
-

@@ -17,6 +17,8 @@ public class VentasController : ControllerBase
     private readonly IProductoService _productoService;
     private readonly IMapper _mapper;
     private readonly ILogger<VentasController> _logger;
+    
+    private const decimal IVA_PORCENTAJE = 0.16m; // 16% de IVA
 
     public VentasController(
         IVentaService ventaService,
@@ -107,27 +109,31 @@ public class VentasController : ControllerBase
     {
         try
         {
-            // Obtener el email del usuario autenticado
+            // Logging para diagnóstico
             var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email))
-                return NotFound("No se pudo obtener el email del usuario autenticado");
-
-            // Buscar el cliente por email
-            var clientes = await _clienteService.GetAllAsync();
-            var cliente = clientes.FirstOrDefault(c => c.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+            _logger.LogInformation("🔍 GetMisCompras - Email del token: {Email}", email);
             
+            var cliente = await ObtenerClienteAutenticadoAsync();
             if (cliente == null)
+            {
+                _logger.LogWarning("⚠️ GetMisCompras - No se encontró cliente para el email: {Email}", email);
                 return Ok(new List<VentaDto>()); // Retornar lista vacía si no hay cliente
+            }
+
+            _logger.LogInformation("✅ GetMisCompras - Cliente encontrado: ID={ClienteId}, Nombre={NombreCompleto}", 
+                cliente.Id, cliente.NombreCompleto);
 
             // Obtener las ventas del cliente
             var ventas = await _ventaService.GetByClienteIdAsync(cliente.Id);
+            _logger.LogInformation("📊 GetMisCompras - Ventas encontradas: {Count}", ventas.Count());
+            
             var ventasDto = _mapper.Map<IEnumerable<VentaDto>>(ventas);
             return Ok(ventasDto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error al obtener compras del cliente");
-            return StatusCode(500, "Error interno del servidor");
+            _logger.LogError(ex, "❌ Error al obtener compras del cliente");
+            return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
         }
     }
 
@@ -167,32 +173,36 @@ public class VentasController : ControllerBase
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Obtener el cliente del usuario autenticado
-            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email))
-                return BadRequest("No se pudo obtener el email del usuario autenticado");
+            _logger.LogInformation("🛒 Creando venta - Método de pago: {MetodoPago}, Detalles: {Count}", 
+                ventaDto.MetodoPago, ventaDto.Detalles?.Count ?? 0);
 
-            var clientes = await _clienteService.GetAllAsync();
-            var cliente = clientes.FirstOrDefault(c => c.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
-            
+            // Obtener el cliente del usuario autenticado
+            var cliente = await ObtenerClienteAutenticadoAsync();
             if (cliente == null)
-                return BadRequest("Cliente no encontrado. Por favor, complete su perfil primero.");
+            {
+                _logger.LogError("❌ Create Venta - Cliente no encontrado para el usuario autenticado");
+                return BadRequest(new { message = "Cliente no encontrado. Por favor, complete su perfil primero." });
+            }
+
+            _logger.LogInformation("✅ Create Venta - Cliente autenticado: ID={ClienteId}, Nombre={Nombre}", 
+                cliente.Id, cliente.NombreCompleto);
 
             // Si el DTO no tiene ClienteId, usar el del usuario autenticado
             if (ventaDto.ClienteId == 0)
             {
                 ventaDto.ClienteId = cliente.Id;
+                _logger.LogInformation("📝 Create Venta - ClienteId asignado desde usuario autenticado: {ClienteId}", cliente.Id);
             }
             // Si tiene ClienteId, verificar que sea válido
             else if (ventaDto.ClienteId != cliente.Id)
             {
                 // Solo Admin puede crear ventas para otros clientes
                 if (!User.IsInRole("Admin"))
-                    return BadRequest("No tienes permiso para crear ventas para otros clientes");
+                    return BadRequest(new { message = "No tienes permiso para crear ventas para otros clientes" });
                     
                 cliente = await _clienteService.GetByIdAsync(ventaDto.ClienteId);
                 if (cliente == null)
-                    return BadRequest($"Cliente con ID {ventaDto.ClienteId} no encontrado");
+                    return BadRequest(new { message = $"Cliente con ID {ventaDto.ClienteId} no encontrado" });
             }
 
             // Mapear DTO a entidad
@@ -200,6 +210,9 @@ public class VentasController : ControllerBase
             venta.Cliente = $"{cliente.Nombre} {cliente.Apellido}";
             venta.ClienteId = cliente.Id;
             venta.MetodoPago = string.IsNullOrEmpty(ventaDto.MetodoPago) ? "Efectivo" : ventaDto.MetodoPago;
+            
+            _logger.LogInformation("📦 Create Venta - Venta mapeada: ClienteId={ClienteId}, Cliente={Cliente}, MetodoPago={MetodoPago}", 
+                venta.ClienteId, venta.Cliente, venta.MetodoPago);
             
             // Validar stock de productos antes de crear la venta
             foreach (var detalle in venta.Detalles)
@@ -215,16 +228,20 @@ public class VentasController : ControllerBase
             // Usar CrearVentaConDetallesAsync que maneja todo el proceso
             await _ventaService.CrearVentaConDetallesAsync(venta);
 
+            _logger.LogInformation("✅ Create Venta - Venta creada exitosamente: VentaId={VentaId}, ClienteId={ClienteId}, Total={Total}", 
+                venta.Id, venta.ClienteId, venta.Total);
+
             var ventaCreada = _mapper.Map<VentaDto>(venta);
             return CreatedAtAction(nameof(GetById), new { id = venta.Id }, ventaCreada);
         }
         catch (ArgumentException ex)
         {
+            _logger.LogError(ex, "❌ Error de validación al crear venta: {Message}", ex.Message);
             return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error al crear venta");
+            _logger.LogError(ex, "❌ Error al crear venta");
             return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
         }
     }
@@ -256,7 +273,7 @@ public class VentasController : ControllerBase
             _mapper.Map(ventaDto, ventaExistente);
             ventaExistente.Cliente = $"{cliente.Nombre} {cliente.Apellido}";
             
-            // Recalcular totales
+            // Recalcular totales con el porcentaje de IVA correcto
             decimal total = 0;
             foreach (var detalle in ventaExistente.Detalles)
             {
@@ -265,7 +282,7 @@ public class VentasController : ControllerBase
             }
             
             ventaExistente.Subtotal = total;
-            ventaExistente.IVA = total * 0.19m;
+            ventaExistente.IVA = total * IVA_PORCENTAJE; // Usando constante
             ventaExistente.Total = total + ventaExistente.IVA;
 
             await _ventaService.UpdateAsync(ventaExistente);
@@ -332,5 +349,38 @@ public class VentasController : ControllerBase
             return StatusCode(500, "Error interno del servidor");
         }
     }
-}
 
+    #region Métodos Privados Auxiliares
+
+    /// <summary>
+    /// Obtiene el cliente asociado al usuario autenticado actual
+    /// </summary>
+    private async Task<Cliente?> ObtenerClienteAutenticadoAsync()
+    {
+        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+        if (string.IsNullOrEmpty(email))
+        {
+            _logger.LogWarning("⚠️ ObtenerClienteAutenticadoAsync - No se encontró email en el token");
+            return null;
+        }
+
+        _logger.LogInformation("🔍 ObtenerClienteAutenticadoAsync - Buscando cliente con email: {Email}", email);
+        
+        // Usar GetByEmailAsync para búsqueda eficiente en base de datos
+        var cliente = await _clienteService.GetByEmailAsync(email);
+        
+        if (cliente == null)
+        {
+            _logger.LogWarning("⚠️ ObtenerClienteAutenticadoAsync - Cliente no encontrado en BD para email: {Email}", email);
+        }
+        else
+        {
+            _logger.LogInformation("✅ ObtenerClienteAutenticadoAsync - Cliente encontrado: ID={Id}, Nombre={Nombre}", 
+                cliente.Id, cliente.NombreCompleto);
+        }
+        
+        return cliente;
+    }
+
+    #endregion
+}

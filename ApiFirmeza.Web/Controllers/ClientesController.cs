@@ -43,7 +43,7 @@ public class ClientesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al obtener clientes");
-            return StatusCode(500, "Error interno del servidor");
+            return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
         }
     }
 
@@ -59,7 +59,7 @@ public class ClientesController : ControllerBase
         {
             var cliente = await _clienteService.GetByIdAsync(id);
             if (cliente == null)
-                return NotFound($"Cliente con ID {id} no encontrado");
+                return NotFound(new { message = $"Cliente con ID {id} no encontrado" });
 
             var clienteDto = _mapper.Map<ClienteDto>(cliente);
             return Ok(clienteDto);
@@ -67,7 +67,7 @@ public class ClientesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al obtener cliente {Id}", id);
-            return StatusCode(500, "Error interno del servidor");
+            return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
         }
     }
 
@@ -91,7 +91,7 @@ public class ClientesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al buscar clientes");
-            return StatusCode(500, "Error interno del servidor");
+            return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
         }
     }
 
@@ -117,12 +117,12 @@ public class ClientesController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al crear cliente");
-            return StatusCode(500, "Error interno del servidor");
+            return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
         }
     }
 
@@ -143,7 +143,7 @@ public class ClientesController : ControllerBase
 
             var clienteExistente = await _clienteService.GetByIdAsync(id);
             if (clienteExistente == null)
-                return NotFound($"Cliente con ID {id} no encontrado");
+                return NotFound(new { message = $"Cliente con ID {id} no encontrado" });
 
             _mapper.Map(clienteDto, clienteExistente);
             await _clienteService.UpdateAsync(clienteExistente);
@@ -152,12 +152,12 @@ public class ClientesController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al actualizar cliente {Id}", id);
-            return StatusCode(500, "Error interno del servidor");
+            return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
         }
     }
 
@@ -172,16 +172,9 @@ public class ClientesController : ControllerBase
     {
         try
         {
-            // Obtener el email del usuario autenticado
-            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email))
-                return NotFound("No se pudo obtener el email del usuario autenticado");
-
-            var clientes = await _clienteService.GetAllAsync();
-            var cliente = clientes.FirstOrDefault(c => c.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
-            
+            var cliente = await ObtenerClienteAutenticadoAsync();
             if (cliente == null)
-                return NotFound("No se encontró el perfil del cliente");
+                return NotFound(new { message = "No se encontró el perfil del cliente" });
 
             var clienteDto = _mapper.Map<ClienteDto>(cliente);
             return Ok(clienteDto);
@@ -189,7 +182,42 @@ public class ClientesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al obtener perfil del cliente");
-            return StatusCode(500, "Error interno del servidor");
+            return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Actualiza el perfil del cliente autenticado
+    /// </summary>
+    [HttpPut("perfil")]
+    [Authorize(Roles = "Cliente,Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdatePerfil([FromBody] ClienteUpdateDto clienteDto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var clienteExistente = await ObtenerClienteAutenticadoAsync();
+            if (clienteExistente == null)
+                return NotFound(new { message = "No se encontró el perfil del cliente" });
+
+            _mapper.Map(clienteDto, clienteExistente);
+            await _clienteService.UpdateAsync(clienteExistente);
+
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al actualizar perfil del cliente");
+            return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
         }
     }
 
@@ -206,18 +234,18 @@ public class ClientesController : ControllerBase
         {
             var resultado = await _clienteService.DeleteAsync(id);
             if (!resultado)
-                return NotFound($"Cliente con ID {id} no encontrado");
+                return NotFound(new { message = $"Cliente con ID {id} no encontrado" });
 
             return NoContent();
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al eliminar cliente {Id}", id);
-            return StatusCode(500, "Error interno del servidor");
+            return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
         }
     }
 
@@ -238,8 +266,24 @@ public class ClientesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al obtener clientes activos");
-            return StatusCode(500, "Error interno del servidor");
+            return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
         }
     }
-}
 
+    #region Métodos Privados Auxiliares
+
+    /// <summary>
+    /// Obtiene el cliente asociado al usuario autenticado actual
+    /// </summary>
+    private async Task<Cliente?> ObtenerClienteAutenticadoAsync()
+    {
+        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+        if (string.IsNullOrEmpty(email))
+            return null;
+
+        // Usar GetByEmailAsync para búsqueda eficiente en base de datos
+        return await _clienteService.GetByEmailAsync(email);
+    }
+
+    #endregion
+}

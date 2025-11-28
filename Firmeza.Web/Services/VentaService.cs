@@ -134,7 +134,7 @@ public class VentaService : IVentaService
             Console.WriteLine($"Subtotal: {venta.Subtotal}, IVA: {venta.IVA}, Total: {venta.Total}");
 
             // El ClienteId ya debe venir establecido desde el controlador
-            if (venta.ClienteId <= 0)
+            if (!venta.ClienteId.HasValue || venta.ClienteId.Value <= 0)
             {
                 throw new ArgumentException("El ClienteId es requerido para crear una venta.");
             }
@@ -145,8 +145,28 @@ public class VentaService : IVentaService
             venta.NumeroFactura = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
             venta.FechaVenta = DateTime.UtcNow;
             venta.Estado = "Completada";
+            
+            // Establecer vendedor por defecto si no está establecido
+            if (string.IsNullOrEmpty(venta.Vendedor))
+            {
+                venta.Vendedor = "Sistema";
+            }
 
-            Console.WriteLine($"Numero factura: {venta.NumeroFactura}");
+            Console.WriteLine($"Numero factura: {venta.NumeroFactura}, Vendedor: {venta.Vendedor}");
+            Console.WriteLine("Configurando relaciones de detalles con la venta...");
+            
+            // Asegurar que los detalles estén correctamente vinculados a la venta
+            // Esto evita problemas de relación en EF Core
+            if (venta.Detalles != null && venta.Detalles.Any())
+            {
+                foreach (var detalle in venta.Detalles)
+                {
+                    detalle.Venta = venta;
+                    detalle.VentaId = 0; // Se establecerá automáticamente por EF
+                    Console.WriteLine($"Detalle configurado: ProductoId={detalle.ProductoId}, Cantidad={detalle.Cantidad}");
+                }
+            }
+            
             Console.WriteLine("Guardando venta en la base de datos...");
 
             // Guardar venta
@@ -395,11 +415,26 @@ public class VentaService : IVentaService
     {
         try
         {
-            var ventas = await _ventaRepository.GetAllAsync();
-            return ventas.Where(v => v.ClienteId == clienteId);
+            Console.WriteLine($"=== VentaService.GetByClienteIdAsync ===");
+            Console.WriteLine($"Buscando ventas para ClienteId: {clienteId}");
+            
+            var todasLasVentas = await _ventaRepository.GetAllAsync();
+            Console.WriteLine($"Total de ventas en BD: {todasLasVentas.Count()}");
+            
+            var ventasDelCliente = todasLasVentas.Where(v => v.ClienteId == clienteId).ToList();
+            Console.WriteLine($"Ventas encontradas para ClienteId {clienteId}: {ventasDelCliente.Count}");
+            
+            // Log de cada venta encontrada
+            foreach (var venta in ventasDelCliente)
+            {
+                Console.WriteLine($"  - Venta ID: {venta.Id}, Fecha: {venta.FechaVenta}, Total: {venta.Total}, ClienteId: {venta.ClienteId}");
+            }
+            
+            return ventasDelCliente;
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"ERROR en GetByClienteIdAsync: {ex.Message}");
             throw new Exception($"Error al obtener ventas por cliente: {ex.Message}", ex);
         }
     }
