@@ -17,6 +17,8 @@ public class VentasController : ControllerBase
     private readonly IProductoService _productoService;
     private readonly IMapper _mapper;
     private readonly ILogger<VentasController> _logger;
+    private readonly ApiFirmeza.Web.Services.IEmailService _emailService;
+    private readonly ApiFirmeza.Web.Services.IComprobanteService _comprobanteService;
     
     private const decimal IVA_PORCENTAJE = 0.16m; // 16% de IVA
 
@@ -25,13 +27,17 @@ public class VentasController : ControllerBase
         IClienteService clienteService,
         IProductoService productoService,
         IMapper mapper,
-        ILogger<VentasController> logger)
+        ILogger<VentasController> logger,
+        ApiFirmeza.Web.Services.IEmailService emailService,
+        ApiFirmeza.Web.Services.IComprobanteService comprobanteService)
     {
         _ventaService = ventaService;
         _clienteService = clienteService;
         _productoService = productoService;
         _mapper = mapper;
         _logger = logger;
+        _emailService = emailService;
+        _comprobanteService = comprobanteService;
     }
 
     /// <summary>
@@ -231,8 +237,57 @@ public class VentasController : ControllerBase
             _logger.LogInformation("✅ Create Venta - Venta creada exitosamente: VentaId={VentaId}, ClienteId={ClienteId}, Total={Total}", 
                 venta.Id, venta.ClienteId, venta.Total);
 
+            // Enviar comprobante por email (no bloqueante)
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    _logger.LogInformation("📧 Iniciando envío de comprobante por email para Venta ID: {VentaId}", venta.Id);
+                    
+                    // Obtener venta completa con detalles para el PDF
+                    var ventaCompleta = await _ventaService.GetByIdAsync(venta.Id);
+                    if (ventaCompleta == null)
+                    {
+                        _logger.LogWarning("⚠️ No se pudo obtener la venta completa para enviar email");
+                        return;
+                    }
+
+                    // Generar PDF del comprobante
+                    var pdfBytes = _comprobanteService.GenerarComprobantePdf(ventaCompleta);
+                    
+                    // Enviar email con el comprobante
+                    var emailEnviado = await _emailService.EnviarComprobanteCompraAsync(
+                        destinatario: cliente.Email,
+                        nombreCliente: cliente.NombreCompleto,
+                        ventaId: venta.Id,
+                        total: venta.Total,
+                        numeroFactura: venta.NumeroFactura,
+                        pdfBytes: pdfBytes
+                    );
+
+                    if (emailEnviado)
+                    {
+                        _logger.LogInformation("✅ Comprobante enviado exitosamente a {Email}", cliente.Email);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("⚠️ No se pudo enviar el comprobante a {Email}", cliente.Email);
+                    }
+                }
+                catch (Exception emailEx)
+                {
+                    _logger.LogError(emailEx, "❌ Error al enviar comprobante por email");
+                }
+            });
+
             var ventaCreada = _mapper.Map<VentaDto>(venta);
-            return CreatedAtAction(nameof(GetById), new { id = venta.Id }, ventaCreada);
+            
+            // Agregar información de que el comprobante será enviado
+            return CreatedAtAction(nameof(GetById), new { id = venta.Id }, new 
+            { 
+                venta = ventaCreada,
+                mensaje = "Compra realizada exitosamente. El comprobante será enviado a tu correo electrónico."
+            });
         }
         catch (ArgumentException ex)
         {

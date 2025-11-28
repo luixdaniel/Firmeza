@@ -157,6 +157,10 @@ builder.Services.AddScoped<IVentaService, VentaService>();
 builder.Services.AddScoped<IExportacionService, ExportacionService>();
 builder.Services.AddScoped<IImportacionMasivaService, ImportacionMasivaService>();
 
+// Servicios de Email y Comprobantes
+builder.Services.AddScoped<ApiFirmeza.Web.Services.IEmailService, ApiFirmeza.Web.Services.EmailService>();
+builder.Services.AddScoped<ApiFirmeza.Web.Services.IComprobanteService, ApiFirmeza.Web.Services.ComprobanteService>();
+
 // Configurar logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();

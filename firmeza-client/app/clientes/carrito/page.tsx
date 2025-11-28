@@ -97,15 +97,18 @@ export default function CarritoPage() {
         })),
       };
 
-      await ventasService.create(ventaData);
+      const response = await ventasService.create(ventaData);
 
       // Limpiar el carrito
       setCart([]);
       localStorage.removeItem('cart');
       window.dispatchEvent(new Event('cartUpdated'));
 
-      // Redirigir a mis compras con mensaje de éxito
-      alert('¡Compra realizada exitosamente!');
+      // Mostrar mensaje de éxito con información del comprobante
+      const mensaje = response?.mensaje || 
+        '¡Compra realizada exitosamente! El comprobante será enviado a tu correo electrónico.';
+      
+      alert(mensaje);
       router.push('/clientes/mis-compras');
     } catch (err: any) {
       console.error('Error al procesar la compra:', err);
