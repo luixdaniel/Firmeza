@@ -25,8 +25,7 @@ export default function TiendaPage() {
         productosService.getAll(),
         categoriasService.getAll(),
       ]);
-      // Mostrar TODOS los productos de la base de datos
-      setProductos(productosData);
+      setProductos(productosData.filter(p => p.activo && p.stock > 0));
       setCategorias(categoriasData);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al cargar productos');
@@ -200,22 +199,10 @@ export default function TiendaPage() {
 
               {/* Product info */}
               <div className="p-4">
-                <div className="mb-2 flex items-center justify-between">
+                <div className="mb-2">
                   <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
                     {producto.categoriaNombre}
                   </span>
-                  <div className="flex items-center gap-1">
-                    {!producto.activo && (
-                      <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded">
-                        Inactivo
-                      </span>
-                    )}
-                    {producto.stock === 0 && (
-                      <span className="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded">
-                        Agotado
-                      </span>
-                    )}
-                  </div>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
                   {producto.nombre}
@@ -223,36 +210,19 @@ export default function TiendaPage() {
                 <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                   {producto.descripcion}
                 </p>
-                <div className="mb-3 text-xs text-gray-500">
-                  <p><span className="font-semibold">ID:</span> {producto.id}</p>
-                  <p><span className="font-semibold">Categoría ID:</span> {producto.categoriaId}</p>
-                </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-2xl font-bold text-gray-900">
                       ${producto.precio.toLocaleString('es-CO')}
                     </p>
-                    <p className={`text-xs font-medium ${
-                      producto.stock === 0 
-                        ? 'text-red-600' 
-                        : producto.stock < 10 
-                        ? 'text-orange-600' 
-                        : 'text-green-600'
-                    }`}>
+                    <p className="text-xs text-gray-500">
                       Stock: {producto.stock} unidades
                     </p>
                   </div>
                   <button
                     onClick={() => addToCart(producto)}
-                    disabled={producto.stock === 0 || !producto.activo}
+                    disabled={producto.stock === 0}
                     className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                    title={
-                      !producto.activo 
-                        ? 'Producto inactivo' 
-                        : producto.stock === 0 
-                        ? 'Producto agotado' 
-                        : 'Agregar al carrito'
-                    }
                   >
                     <ShoppingCart className="h-5 w-5" />
                   </button>

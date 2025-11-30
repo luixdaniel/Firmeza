@@ -33,7 +33,7 @@ public class EmailService : IEmailService
     {
         try
         {
-            _logger.LogInformation("📧 Enviando comprobante de compra a {Email}", destinatario);
+            _logger.LogInformation("📧 Iniciando envío de comprobante de compra a {Email}", destinatario);
 
             // Configuración SMTP desde appsettings
             var smtpHost = _configuration["EmailSettings:SmtpHost"] ?? "smtp.gmail.com";
@@ -42,9 +42,14 @@ public class EmailService : IEmailService
             var senderPassword = _configuration["EmailSettings:SenderPassword"];
             var senderName = _configuration["EmailSettings:SenderName"] ?? "Firmeza - Tienda";
 
+            _logger.LogInformation("🔧 Configuración SMTP: Host={Host}, Port={Port}, From={From}", 
+                smtpHost, smtpPort, senderEmail);
+
             if (string.IsNullOrEmpty(senderEmail) || string.IsNullOrEmpty(senderPassword))
             {
                 _logger.LogError("❌ Configuración de email incompleta. Verifica EmailSettings en appsettings.json");
+                _logger.LogError("   SenderEmail: {HasEmail}", string.IsNullOrEmpty(senderEmail) ? "FALTA" : "OK");
+                _logger.LogError("   SenderPassword: {HasPassword}", string.IsNullOrEmpty(senderPassword) ? "FALTA" : "OK");
                 return false;
             }
 
@@ -134,18 +139,39 @@ public class EmailService : IEmailService
             // Enviar el correo usando SMTP
             using (var client = new SmtpClient())
             {
+                _logger.LogInformation("🔌 Conectando al servidor SMTP {Host}:{Port}...", smtpHost, smtpPort);
                 await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
+                _logger.LogInformation("✅ Conectado al servidor SMTP");
+
+                _logger.LogInformation("🔐 Autenticando con {Email}...", senderEmail);
                 await client.AuthenticateAsync(senderEmail, senderPassword);
+                _logger.LogInformation("✅ Autenticación exitosa");
+
+                _logger.LogInformation("📤 Enviando mensaje...");
                 await client.SendAsync(message);
+                _logger.LogInformation("✅ Mensaje enviado");
+
                 await client.DisconnectAsync(true);
+                _logger.LogInformation("🔌 Desconectado del servidor SMTP");
             }
 
             _logger.LogInformation("✅ Correo enviado exitosamente a {Email}", destinatario);
             return true;
         }
+        catch (MailKit.Security.AuthenticationException authEx)
+        {
+            _logger.LogError(authEx, "❌ Error de autenticación SMTP. Verifica el email y contraseña de aplicación.");
+            _logger.LogError("   Asegúrate de usar una 'Contraseña de Aplicación' de Gmail, no la contraseña normal.");
+            return false;
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "❌ Error al enviar correo a {Email}: {Message}", destinatario, ex.Message);
+            _logger.LogError("   Tipo de error: {Type}", ex.GetType().Name);
+            if (ex.InnerException != null)
+            {
+                _logger.LogError("   Error interno: {InnerMessage}", ex.InnerException.Message);
+            }
             return false;
         }
     }

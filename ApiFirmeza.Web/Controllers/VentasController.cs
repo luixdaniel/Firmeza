@@ -19,6 +19,7 @@ public class VentasController : ControllerBase
     private readonly ILogger<VentasController> _logger;
     private readonly ApiFirmeza.Web.Services.IEmailService _emailService;
     private readonly ApiFirmeza.Web.Services.IComprobanteService _comprobanteService;
+    private readonly IServiceProvider _serviceProvider;
     
     private const decimal IVA_PORCENTAJE = 0.16m; // 16% de IVA
 
@@ -29,7 +30,8 @@ public class VentasController : ControllerBase
         IMapper mapper,
         ILogger<VentasController> logger,
         ApiFirmeza.Web.Services.IEmailService emailService,
-        ApiFirmeza.Web.Services.IComprobanteService comprobanteService)
+        ApiFirmeza.Web.Services.IComprobanteService comprobanteService,
+        IServiceProvider serviceProvider)
     {
         _ventaService = ventaService;
         _clienteService = clienteService;
@@ -38,6 +40,7 @@ public class VentasController : ControllerBase
         _logger = logger;
         _emailService = emailService;
         _comprobanteService = comprobanteService;
+        _serviceProvider = serviceProvider;
     }
 
     /// <summary>
@@ -237,48 +240,79 @@ public class VentasController : ControllerBase
             _logger.LogInformation("✅ Create Venta - Venta creada exitosamente: VentaId={VentaId}, ClienteId={ClienteId}, Total={Total}", 
                 venta.Id, venta.ClienteId, venta.Total);
 
-            // Enviar comprobante por email (no bloqueante)
-            _ = Task.Run(async () =>
+            // Capturar datos del cliente ANTES del Task.Run para evitar problemas de contexto
+            var clienteEmail = cliente.Email;
+            var clienteNombreCompleto = cliente.NombreCompleto;
+            var ventaId = venta.Id;
+            var ventaTotal = venta.Total;
+            var ventaNumeroFactura = venta.NumeroFactura;
+
+            _logger.LogInformation("📧 Preparando envío de email a: {Email}, Cliente: {Nombre}", clienteEmail, clienteNombreCompleto);
+
+            // Verificar que el email no esté vacío
+            if (string.IsNullOrEmpty(clienteEmail))
             {
-                try
+                _logger.LogError("❌ El cliente no tiene un email configurado. No se puede enviar el comprobante. ClienteId: {ClienteId}", cliente.Id);
+            }
+            else
+            {
+                // Enviar comprobante por email (no bloqueante) usando un nuevo scope
+                _ = Task.Run(async () =>
                 {
-                    _logger.LogInformation("📧 Iniciando envío de comprobante por email para Venta ID: {VentaId}", venta.Id);
-                    
-                    // Obtener venta completa con detalles para el PDF
-                    var ventaCompleta = await _ventaService.GetByIdAsync(venta.Id);
-                    if (ventaCompleta == null)
+                    try
                     {
-                        _logger.LogWarning("⚠️ No se pudo obtener la venta completa para enviar email");
-                        return;
-                    }
+                        _logger.LogInformation("📧 [BACKGROUND] Iniciando envío de comprobante por email para Venta ID: {VentaId}", ventaId);
+                        
+                        // Crear un nuevo scope para tener una instancia fresca de los servicios
+                        using (var scope = _serviceProvider.CreateScope())
+                        {
+                            var scopedVentaService = scope.ServiceProvider.GetRequiredService<IVentaService>();
+                            var scopedEmailService = scope.ServiceProvider.GetRequiredService<ApiFirmeza.Web.Services.IEmailService>();
+                            var scopedComprobanteService = scope.ServiceProvider.GetRequiredService<ApiFirmeza.Web.Services.IComprobanteService>();
+                            
+                            _logger.LogInformation("📄 [BACKGROUND] Obteniendo venta completa con detalles para Venta ID: {VentaId}", ventaId);
+                            
+                            // Obtener venta completa con detalles para el PDF
+                            var ventaCompleta = await scopedVentaService.GetByIdAsync(ventaId);
+                            if (ventaCompleta == null)
+                            {
+                                _logger.LogError("❌ [BACKGROUND] No se pudo obtener la venta completa para enviar email. VentaId: {VentaId}", ventaId);
+                                return;
+                            }
 
-                    // Generar PDF del comprobante
-                    var pdfBytes = _comprobanteService.GenerarComprobantePdf(ventaCompleta);
-                    
-                    // Enviar email con el comprobante
-                    var emailEnviado = await _emailService.EnviarComprobanteCompraAsync(
-                        destinatario: cliente.Email,
-                        nombreCliente: cliente.NombreCompleto,
-                        ventaId: venta.Id,
-                        total: venta.Total,
-                        numeroFactura: venta.NumeroFactura,
-                        pdfBytes: pdfBytes
-                    );
+                            _logger.LogInformation("📄 [BACKGROUND] Generando PDF del comprobante para Venta ID: {VentaId}", ventaId);
+                            
+                            // Generar PDF del comprobante
+                            var pdfBytes = scopedComprobanteService.GenerarComprobantePdf(ventaCompleta);
+                            
+                            _logger.LogInformation("📤 [BACKGROUND] Enviando email a: {Email}", clienteEmail);
+                            
+                            // Enviar email con el comprobante
+                            var emailEnviado = await scopedEmailService.EnviarComprobanteCompraAsync(
+                                destinatario: clienteEmail,
+                                nombreCliente: clienteNombreCompleto,
+                                ventaId: ventaId,
+                                total: ventaTotal,
+                                numeroFactura: ventaNumeroFactura,
+                                pdfBytes: pdfBytes
+                            );
 
-                    if (emailEnviado)
-                    {
-                        _logger.LogInformation("✅ Comprobante enviado exitosamente a {Email}", cliente.Email);
+                            if (emailEnviado)
+                            {
+                                _logger.LogInformation("✅ [BACKGROUND] Comprobante enviado exitosamente a {Email}", clienteEmail);
+                            }
+                            else
+                            {
+                                _logger.LogError("❌ [BACKGROUND] No se pudo enviar el comprobante a {Email}", clienteEmail);
+                            }
+                        }
                     }
-                    else
+                    catch (Exception emailEx)
                     {
-                        _logger.LogWarning("⚠️ No se pudo enviar el comprobante a {Email}", cliente.Email);
+                        _logger.LogError(emailEx, "❌ [BACKGROUND] Error al enviar comprobante por email a {Email}", clienteEmail);
                     }
-                }
-                catch (Exception emailEx)
-                {
-                    _logger.LogError(emailEx, "❌ Error al enviar comprobante por email");
-                }
-            });
+                });
+            }
 
             var ventaCreada = _mapper.Map<VentaDto>(venta);
             
