@@ -26,5 +26,11 @@ public class ProductViewModel
     public string CategoriaNombre { get; set; } = null!;
     
     public int CategoriaId { get; set; }
+    
+    [Display(Name = "Activo")]
+    public bool Activo { get; set; }
+    
+    [Display(Name = "Imagen")]
+    public string? ImagenUrl { get; set; }
 }
 

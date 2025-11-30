@@ -34,7 +34,9 @@ namespace Firmeza.Web.Areas.Admin.Controllers
                     Precio = p.Precio,
                     Stock = p.Stock,
                     CategoriaId = p.CategoriaId,
-                    CategoriaNombre = p.Categoria?.Nombre ?? "Sin categoría"
+                    CategoriaNombre = p.Categoria?.Nombre ?? "Sin categoría",
+                    Activo = p.Activo,
+                    ImagenUrl = p.ImagenUrl
                 }).ToList();
                 
                 return View(viewModels  );
@@ -69,7 +71,9 @@ namespace Firmeza.Web.Areas.Admin.Controllers
                     Precio = producto.Precio,
                     Stock = producto.Stock,
                     CategoriaId = producto.CategoriaId,
-                    CategoriaNombre = producto.Categoria?.Nombre ?? "Sin categoría"
+                    CategoriaNombre = producto.Categoria?.Nombre ?? "Sin categoría",
+                    Activo = producto.Activo,
+                    ImagenUrl = producto.ImagenUrl
                 };
                 
                 return View(viewModel);
