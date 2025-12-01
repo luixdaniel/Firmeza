@@ -169,15 +169,13 @@ builder.Logging.AddDebug();
 var app = builder.Build();
 
 // Configurar el pipeline HTTP
-if (app.Environment.IsDevelopment())
+// Swagger habilitado en todos los entornos (Development y Production)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Firmeza API v1");
-        c.RoutePrefix = string.Empty; // Swagger en la raíz
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Firmeza API v1");
+    c.RoutePrefix = "swagger"; // Swagger en /swagger
+});
 
 app.UseHttpsRedirection();
 
@@ -280,9 +278,23 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Error al crear roles y usuario administrador");
+        var errorLogger = services.GetRequiredService<ILogger<Program>>();
+        errorLogger.LogError(ex, "Error al crear roles y usuario administrador");
     }
 }
+
+// Mostrar enlaces de acceso
+var appLogger = app.Services.GetRequiredService<ILogger<Program>>();
+var urls = app.Urls;
+appLogger.LogInformation("╔════════════════════════════════════════════════════════════════╗");
+appLogger.LogInformation("║                    🚀 FIRMEZA API REST                         ║");
+appLogger.LogInformation("╠════════════════════════════════════════════════════════════════╣");
+appLogger.LogInformation("║  📍 API URL:     http://localhost:5090                         ║");
+appLogger.LogInformation("║  📚 Swagger:     http://localhost:5090/swagger                 ║");
+appLogger.LogInformation("║  💚 Health:      http://localhost:5090/health                  ║");
+appLogger.LogInformation("╠════════════════════════════════════════════════════════════════╣");
+appLogger.LogInformation("║  👤 Usuario Admin: admin@firmeza.com                           ║");
+appLogger.LogInformation("║  🔑 Contraseña:    Admin123$                                   ║");
+appLogger.LogInformation("╚════════════════════════════════════════════════════════════════╝");
 
 app.Run();

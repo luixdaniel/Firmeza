@@ -1,25 +1,85 @@
-﻿**/.dockerignore
-**/.env
-**/.git
-**/.gitignore
-**/.project
-**/.settings
-**/.toolstarget
-**/.vs
-**/.vscode
-**/.idea
-**/*.*proj.user
-**/*.dbmdl
-**/*.jfm
-**/azds.yaml
-**/bin
-**/charts
-**/docker-compose*
-**/Dockerfile*
-**/node_modules
-**/npm-debug.log
-**/obj
-**/secrets.dev.yaml
-**/values.dev.yaml
-LICENSE
-README.md
+﻿# ====================================
+# .dockerignore para la solución Firmeza
+# ====================================
+# Este archivo está en la raíz y aplica a todos los Dockerfiles
+
+# ====================================
+# Frontend Node.js
+# ====================================
+firmeza-client/node_modules/
+firmeza-client/.next/
+firmeza-client/out/
+firmeza-client/.env.local
+
+# ====================================
+# .NET Build outputs
+# ====================================
+**/bin/
+**/obj/
+**/TestResults/
+**/test-results/
+
+# ====================================
+# IDEs
+# ====================================
+**/.vs/
+**/.idea/
+**/.vscode/
+**/*.user
+**/*.suo
+**/*.userosscache
+**/*.sln.docstates
+**/.rider/
+
+# ====================================
+# Archivos temporales
+# ====================================
+**/.tmp/
+**/logs/
+**/*.log
+**/*.tmp
+**/*.swp
+**/*~
+
+# ====================================
+# Git
+# ====================================
+.git/
+.gitignore
+.gitattributes
+
+# ====================================
+# Sistema Operativo
+# ====================================
+**/.DS_Store
+**/Thumbs.db
+**/desktop.ini
+
+# ====================================
+# Archivos de configuración local
+# ====================================
+**/appsettings.Development.json
+**/launchSettings.json
+
+# ====================================
+# Archivos generados
+# ====================================
+**/recibos/
+**/*.pdf
+
+# ====================================
+# Scripts y documentación
+# ====================================
+*.bat
+*.ps1
+*.sh
+*.md
+!README.md
+!LICENSE
+
+# ====================================
+# Mantener Dockerfiles
+# ====================================
+!**/Dockerfile
+!**/.dockerignore
+

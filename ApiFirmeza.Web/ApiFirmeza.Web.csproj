@@ -5,7 +5,15 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>4c7ae222-4756-4709-b673-f9b14d7db826</UserSecretsId>
+        <EnableDefaultContentItems>true</EnableDefaultContentItems>
+        <!-- Evitar copiar archivos de configuración del proyecto referenciado -->
+        <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
     </PropertyGroup>
+
+    <ItemGroup>
+        <Content Remove="..\Firmeza.Web\appsettings.json" />
+        <Content Remove="..\Firmeza.Web\appsettings.*.json" />
+    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />

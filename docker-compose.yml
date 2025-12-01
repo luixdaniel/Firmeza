@@ -1,0 +1,198 @@
+# ====================================
+# Docker Compose para Solución Firmeza
+# ====================================
+# 
+# FLUJO DE EJECUCIÓN:
+# 1. tests        → Ejecuta pruebas automatizadas (OBLIGATORIO)
+# 2. api + admin  → Levantan servicios backend (conectan a Supabase)
+# 3. client       → Levanta frontend SPA (depende de api)
+#
+# BASE DE DATOS: Se usa SUPABASE (PostgreSQL en la nube)
+# - No se levanta contenedor local de PostgreSQL
+# - Conexión configurada en variables de entorno (.env)
+# - Host: aws-1-us-east-1.pooler.supabase.com
+#
+# Si tests fallan → TODO EL DESPLIEGUE SE DETIENE
+#
+# Uso:
+#   docker-compose up --build
+#   docker-compose up --build --abort-on-container-exit
+#
+# Nota: Asegúrate de tener el archivo .env configurado con tus credenciales de Supabase
+
+services:
+  # ====================================
+  # PASO 1: Tests - OBLIGATORIO
+  # ====================================
+  # Los tests se ejecutan PRIMERO
+  # Si fallan (exit code != 0) → docker-compose falla
+  tests:
+    build:
+      context: .
+      dockerfile: Firmeza.Tests/Dockerfile
+    image: firmeza-tests:latest
+    container_name: firmeza-tests
+    volumes:
+      - ./test-results:/app/test-results
+    environment:
+      - DOTNET_CLI_TELEMETRY_OPTOUT=1
+      - DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+    networks:
+      - firmeza-network
+    # Este servicio debe completarse exitosamente para continuar
+    # No se reinicia automáticamente
+    restart: "no"
+
+  # ====================================
+  # Base de Datos: SUPABASE (PostgreSQL en la nube)
+  # ====================================
+  # NO se levanta contenedor local porque usamos Supabase
+  # La conexión se configura en las variables de entorno de cada servicio
+  # 
+  # Host: aws-1-us-east-1.pooler.supabase.com
+  # Port: 5432
+  # Database: postgres
+  # User: postgres.qqvyetzzgyxaauedovkv
+  # Password: configurada en .env
+  # 
+  # Ventajas de Supabase:
+  #   - Base de datos ya está en la nube
+  #   - No consume recursos locales
+  #   - Accesible desde cualquier lugar
+  #   - Backups automáticos
+
+  # ====================================
+  # PASO 3a: API REST
+  # ====================================
+  api:
+    build:
+      context: .
+      dockerfile: ApiFirmeza.Web/Dockerfile
+    image: firmeza-api:latest
+    container_name: firmeza-api
+    ports:
+      - "5090:8080"
+    environment:
+      # ASP.NET Core
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - ASPNETCORE_URLS=http://+:8080
+      # Cadena de conexión a SUPABASE (PostgreSQL en la nube)
+      - ConnectionStrings__DefaultConnection=Host=${SUPABASE_HOST:-aws-1-us-east-1.pooler.supabase.com};Port=${SUPABASE_PORT:-5432};Database=${SUPABASE_DATABASE:-postgres};Username=${SUPABASE_USER:-postgres.qqvyetzzgyxaauedovkv};Password=${SUPABASE_PASSWORD};SSL Mode=Require;Trust Server Certificate=true
+      # JWT Settings (desde .env)
+      - JwtSettings__SecretKey=${JWT_SECRET_KEY:-MiClaveSecretaSuperSeguraParaJWT2024FirmezaAPI!@#$%}
+      - JwtSettings__Issuer=${JWT_ISSUER:-FirmezaAPI}
+      - JwtSettings__Audience=${JWT_AUDIENCE:-FirmezaClients}
+      - JwtSettings__ExpirationMinutes=${JWT_EXPIRATION_MINUTES:-120}
+      # Configuración CORS
+      - CORS__AllowedOrigins__0=http://localhost:3000
+      - CORS__AllowedOrigins__1=http://localhost:5000
+      # Email Settings (desde .env)
+      - EmailSettings__SmtpHost=${SMTP_HOST:-smtp.gmail.com}
+      - EmailSettings__SmtpPort=${SMTP_PORT:-587}
+      - EmailSettings__SenderEmail=${SENDER_EMAIL}
+      - EmailSettings__SenderPassword=${SENDER_PASSWORD}
+      - EmailSettings__SenderName=${SENDER_NAME:-Firmeza - Tienda}
+    volumes:
+      - ./recibos:/app/recibos
+    networks:
+      - firmeza-network
+    restart: unless-stopped
+    # API solo depende de tests (Supabase está en la nube, no es un contenedor)
+    depends_on:
+      tests:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ====================================
+  # PASO 3b: Admin Portal (Firmeza.Web)
+  # ====================================
+  admin:
+    build:
+      context: .
+      dockerfile: Firmeza.Web/Dockerfile
+    image: firmeza-admin:latest
+    container_name: firmeza-admin
+    ports:
+      - "5000:8080"
+    environment:
+      # ASP.NET Core
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - ASPNETCORE_URLS=http://+:8080
+      # Cadena de conexión a SUPABASE (PostgreSQL en la nube)
+      - ConnectionStrings__DefaultConnection=Host=${SUPABASE_HOST:-aws-1-us-east-1.pooler.supabase.com};Port=${SUPABASE_PORT:-5432};Database=${SUPABASE_DATABASE:-postgres};Username=${SUPABASE_USER:-postgres.qqvyetzzgyxaauedovkv};Password=${SUPABASE_PASSWORD};SSL Mode=Require;Trust Server Certificate=true
+      # Configuración de autenticación (desde .env, opcional)
+      - Authentication__Google__ClientId=${GOOGLE_CLIENT_ID:-}
+      - Authentication__Google__ClientSecret=${GOOGLE_CLIENT_SECRET:-}
+    networks:
+      - firmeza-network
+    restart: unless-stopped
+    # Admin solo depende de tests (Supabase está en la nube)
+    depends_on:
+      tests:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ====================================
+  # PASO 4: Cliente SPA (Next.js)
+  # ====================================
+  client:
+    build:
+      context: ./firmeza-client
+      dockerfile: Dockerfile
+    image: firmeza-client:latest
+    container_name: firmeza-client
+    ports:
+      - "3000:3000"
+    environment:
+      # Next.js
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      # URL de la API (accesible desde el navegador)
+      - NEXT_PUBLIC_API_URL=http://localhost:5090
+    networks:
+      - firmeza-network
+    restart: unless-stopped
+    # Cliente depende de tests y api
+    depends_on:
+      tests:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# ====================================
+# Volúmenes Persistentes
+# ====================================
+volumes:
+  # Resultados de tests (opcional)
+  test-results:
+    driver: local
+    name: firmeza-test-results
+  
+  # Nota: No necesitamos volumen para PostgreSQL
+  # porque usamos Supabase (base de datos en la nube)
+
+# ====================================
+# Redes
+# ====================================
+networks:
+  firmeza-network:
+    driver: bridge
+    name: firmeza-network
+

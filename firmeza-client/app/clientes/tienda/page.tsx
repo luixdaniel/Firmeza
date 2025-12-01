@@ -66,9 +66,11 @@ export default function TiendaPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando productos...</p>
+        <div className="text-center bg-gradient-to-br from-slate-100 to-orange-50 p-12 rounded-2xl border-4 border-orange-200 shadow-xl">
+          <div className="text-6xl mb-6 animate-bounce">🏗️</div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-xl font-bold text-slate-700">Cargando catálogo...</p>
+          <p className="text-sm text-slate-500 mt-2">Preparando productos industriales</p>
         </div>
       </div>
     );
@@ -76,72 +78,87 @@ export default function TiendaPage() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-800">{error}</p>
-        <button
-          onClick={loadData}
-          className="mt-2 text-red-600 hover:text-red-800 font-medium"
-        >
-          Intentar nuevamente
-        </button>
+      <div className="bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-600 rounded-r-xl p-6 shadow-lg">
+        <div className="flex items-start gap-4">
+          <div className="text-4xl">⚠️</div>
+          <div className="flex-1">
+            <h3 className="text-xl font-bold text-red-800 mb-2">Error al Cargar</h3>
+            <p className="text-red-700 font-medium mb-4">{error}</p>
+            <button
+              onClick={loadData}
+              className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold px-6 py-3 rounded-lg shadow-md transition-all"
+            >
+              🔄 Intentar Nuevamente
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div>
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Tienda</h1>
-        <p className="text-gray-600">Descubre nuestros productos disponibles</p>
+      {/* Header Industrial */}
+      <div className="mb-8 bg-gradient-to-r from-slate-800 to-slate-700 rounded-xl p-6 border-b-4 border-orange-600 shadow-xl">
+        <div className="flex items-center gap-4">
+          <div className="text-5xl">🏪</div>
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2">Catálogo de Productos</h1>
+            <p className="text-gray-300 font-medium">Insumos de construcción y equipos industriales</p>
+          </div>
+        </div>
       </div>
 
-      {/* Search and Filters */}
+      {/* Search and Filters Industrial */}
       <div className="mb-6 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
-          {/* Search bar */}
+          {/* Search bar Industrial */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-500 h-6 w-6" />
             <input
               type="text"
-              placeholder="Buscar productos..."
+              placeholder="🔍 Buscar materiales, herramientas..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-12 pr-4 py-4 border-2 border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-medium text-gray-900 placeholder-slate-400 shadow-sm"
             />
           </div>
 
           {/* Filter button (mobile) */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="sm:hidden flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="sm:hidden flex items-center justify-center px-6 py-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white font-bold rounded-lg hover:from-orange-700 hover:to-orange-800 shadow-lg"
           >
             <Filter className="h-5 w-5 mr-2" />
             Filtros
           </button>
         </div>
 
-        {/* Categories filter */}
-        <div className={`${showFilters ? 'block' : 'hidden'} sm:block`}>
-          <div className="flex flex-wrap gap-2">
+        {/* Categories filter Industrial */}
+        <div className={`${showFilters ? 'block' : 'hidden'} sm:block bg-white p-4 rounded-xl border-2 border-slate-200 shadow-md`}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xl">📂</span>
+            <h3 className="font-bold text-slate-700">Categorías:</h3>
+          </div>
+          <div className="flex flex-wrap gap-3">
             <button
               onClick={() => setSelectedCategoria(null)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`px-5 py-2.5 rounded-lg font-bold transition-all shadow-sm ${
                 selectedCategoria === null
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg scale-105'
+                  : 'bg-slate-100 text-slate-700 border-2 border-slate-300 hover:bg-slate-200 hover:border-orange-500'
               }`}
             >
-              Todas
+              🏗️ Todos
             </button>
             {categorias.map((categoria) => (
               <button
                 key={categoria.id}
                 onClick={() => setSelectedCategoria(categoria.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-5 py-2.5 rounded-lg font-bold transition-all shadow-sm ${
                   selectedCategoria === categoria.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg scale-105'
+                    : 'bg-slate-100 text-slate-700 border-2 border-slate-300 hover:bg-slate-200 hover:border-orange-500'
                 }`}
               >
                 {categoria.nombre}
@@ -151,26 +168,29 @@ export default function TiendaPage() {
         </div>
       </div>
 
-      {/* Results count */}
-      <div className="mb-4">
-        <p className="text-sm text-gray-600">
-          {filteredProductos.length} {filteredProductos.length === 1 ? 'producto encontrado' : 'productos encontrados'}
+      {/* Results count Industrial */}
+      <div className="mb-6 bg-gradient-to-r from-orange-50 to-yellow-50 border-l-4 border-orange-600 rounded-r-lg p-4 shadow-sm">
+        <p className="text-sm font-bold text-slate-700 flex items-center gap-2">
+          <span className="text-xl">📊</span>
+          {filteredProductos.length} {filteredProductos.length === 1 ? 'producto disponible' : 'productos disponibles'}
         </p>
       </div>
 
-      {/* Products grid */}
+      {/* Products grid Industrial */}
       {filteredProductos.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No se encontraron productos</p>
+        <div className="text-center py-16 bg-gradient-to-br from-slate-50 to-gray-100 rounded-xl border-2 border-dashed border-slate-300">
+          <div className="text-7xl mb-4">📦</div>
+          <p className="text-slate-600 text-xl font-bold mb-2">No se encontraron productos</p>
+          <p className="text-slate-500 mb-4">Intenta con otros criterios de búsqueda</p>
           {(searchTerm || selectedCategoria) && (
             <button
               onClick={() => {
                 setSearchTerm('');
                 setSelectedCategoria(null);
               }}
-              className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
+              className="mt-4 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold px-6 py-3 rounded-lg shadow-lg transition-all"
             >
-              Limpiar filtros
+              🔄 Limpiar Filtros
             </button>
           )}
         </div>
@@ -179,10 +199,10 @@ export default function TiendaPage() {
           {filteredProductos.map((producto) => (
             <div
               key={producto.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all hover:scale-105 border-2 border-slate-200"
             >
-              {/* Product image placeholder */}
-              <div className="h-48 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+              {/* Product image Industrial */}
+              <div className="h-48 bg-gradient-to-br from-slate-200 via-gray-200 to-orange-100 flex items-center justify-center relative">
                 {producto.imagenUrl ? (
                   <img
                     src={producto.imagenUrl}
@@ -191,38 +211,45 @@ export default function TiendaPage() {
                   />
                 ) : (
                   <div className="text-center p-4">
-                    <ShoppingCart className="h-12 w-12 text-blue-400 mx-auto mb-2" />
-                    <p className="text-blue-600 text-sm font-medium">{producto.nombre}</p>
+                    <div className="text-6xl mb-2">🧱</div>
+                    <p className="text-slate-600 text-sm font-bold">{producto.nombre}</p>
+                  </div>
+                )}
+                {producto.stock < 10 && (
+                  <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                    ⚠️ Últimas unidades
                   </div>
                 )}
               </div>
 
-              {/* Product info */}
-              <div className="p-4">
-                <div className="mb-2">
-                  <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
+              {/* Product info Industrial */}
+              <div className="p-5">
+                <div className="mb-3">
+                  <span className="text-xs font-bold text-orange-700 bg-orange-100 px-3 py-1.5 rounded-full border border-orange-300">
                     {producto.categoriaNombre}
                   </span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
+                <h3 className="text-xl font-bold text-slate-800 mb-2 line-clamp-1">
                   {producto.nombre}
                 </h3>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                <p className="text-sm text-slate-600 mb-4 line-clamp-2 font-medium">
                   {producto.descripcion}
                 </p>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pt-4 border-t-2 border-slate-200">
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-3xl font-bold text-orange-600">
                       ${producto.precio.toLocaleString('es-CO')}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      Stock: {producto.stock} unidades
+                    <p className="text-xs text-slate-500 font-semibold mt-1 flex items-center gap-1">
+                      <span className="text-base">📦</span>
+                      Stock: {producto.stock} uds
                     </p>
                   </div>
                   <button
                     onClick={() => addToCart(producto)}
                     disabled={producto.stock === 0}
-                    className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    className="flex items-center justify-center px-5 py-3 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white rounded-lg transition-all shadow-md hover:shadow-lg disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed font-bold"
+                    title="Agregar al carrito"
                   >
                     <ShoppingCart className="h-5 w-5" />
                   </button>

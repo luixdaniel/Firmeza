@@ -70,9 +70,11 @@ export default function MisComprasPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando tus compras...</p>
+        <div className="text-center bg-gradient-to-br from-slate-100 to-orange-50 p-12 rounded-2xl border-4 border-orange-200 shadow-xl">
+          <div className="text-6xl mb-6 animate-bounce">📦</div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-xl font-bold text-slate-700">Cargando tus compras...</p>
+          <p className="text-sm text-slate-500 mt-2">Recuperando historial de pedidos</p>
         </div>
       </div>
     );
@@ -80,23 +82,35 @@ export default function MisComprasPage() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-800">{error}</p>
-        <button
-          onClick={loadVentas}
-          className="mt-2 text-red-600 hover:text-red-800 font-medium"
-        >
-          Intentar nuevamente
-        </button>
+      <div className="bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-600 rounded-r-xl p-6 shadow-lg">
+        <div className="flex items-start gap-4">
+          <div className="text-4xl">⚠️</div>
+          <div className="flex-1">
+            <h3 className="text-xl font-bold text-red-800 mb-2">Error al Cargar</h3>
+            <p className="text-red-700 font-medium mb-4">{error}</p>
+            <button
+              onClick={loadVentas}
+              className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-bold px-6 py-3 rounded-lg shadow-md transition-all"
+            >
+              🔄 Intentar Nuevamente
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Mis Compras</h1>
-        <p className="text-gray-600">Historial de tus pedidos realizados</p>
+    <div className="max-w-6xl mx-auto">
+      {/* Header Industrial */}
+      <div className="mb-8 bg-gradient-to-r from-slate-800 to-slate-700 rounded-xl p-6 border-b-4 border-orange-600 shadow-xl">
+        <div className="flex items-center gap-4">
+          <div className="text-5xl">📦</div>
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2">Mis Compras</h1>
+            <p className="text-orange-300 font-bold text-lg">Historial completo de tus pedidos</p>
+          </div>
+        </div>
       </div>
 
       {ventas.length === 0 ? (

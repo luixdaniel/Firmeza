@@ -124,4 +124,26 @@ app.MapControllerRoute(
 // Identity UI (Razor Pages)
 app.MapRazorPages();
 
+// Endpoint de salud para Docker healthcheck
+app.MapGet("/health", () => Results.Ok(new 
+{ 
+    status = "Healthy", 
+    timestamp = DateTime.UtcNow,
+    environment = app.Environment.EnvironmentName,
+    application = "Firmeza.Web"
+}));
+
+// Mostrar enlaces de acceso
+var appLogger = app.Services.GetRequiredService<ILogger<Program>>();
+appLogger.LogInformation("╔════════════════════════════════════════════════════════════════╗");
+appLogger.LogInformation("║              🏢 FIRMEZA - PORTAL ADMINISTRATIVO                ║");
+appLogger.LogInformation("╠════════════════════════════════════════════════════════════════╣");
+appLogger.LogInformation("║  📍 Admin URL:   http://localhost:5000                         ║");
+appLogger.LogInformation("║  💚 Health:      http://localhost:5000/health                  ║");
+appLogger.LogInformation("║  🔐 Login:       http://localhost:5000/Identity/Account/Login  ║");
+appLogger.LogInformation("╠════════════════════════════════════════════════════════════════╣");
+appLogger.LogInformation("║  👤 Usuario Admin: admin@firmeza.com                           ║");
+appLogger.LogInformation("║  🔑 Contraseña:    Admin123$                                   ║");
+appLogger.LogInformation("╚════════════════════════════════════════════════════════════════╝");
+
 app.Run();

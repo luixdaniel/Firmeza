@@ -97,18 +97,16 @@ export default function CarritoPage() {
         })),
       };
 
-      const response = await ventasService.create(ventaData);
+      await ventasService.create(ventaData);
 
       // Limpiar el carrito
       setCart([]);
       localStorage.removeItem('cart');
       window.dispatchEvent(new Event('cartUpdated'));
 
-      // Mostrar mensaje de éxito con información del comprobante
-      const mensaje = response?.mensaje || 
-        '¡Compra realizada exitosamente! El comprobante será enviado a tu correo electrónico.';
+      // Mostrar mensaje de éxito
+      alert('¡Compra realizada exitosamente! El comprobante será enviado a tu correo electrónico.');
       
-      alert(mensaje);
       router.push('/clientes/mis-compras');
     } catch (err: any) {
       console.error('Error al procesar la compra:', err);
@@ -136,162 +134,183 @@ export default function CarritoPage() {
   };
 
   return (
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header Industrial */}
+        <div className="mb-8 bg-gradient-to-r from-slate-800 to-slate-700 rounded-xl p-6 border-b-4 border-orange-600 shadow-xl">
           <button
               onClick={() => router.push('/clientes/tienda')}
-              className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+              className="flex items-center text-white hover:text-orange-400 mb-4 font-bold transition-colors"
           >
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            Seguir comprando
+            <ArrowLeft className="h-6 w-6 mr-2" />
+            ← Seguir Comprando
           </button>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Carrito de Compras</h1>
-          <p className="text-gray-600">{cart.length} {cart.length === 1 ? 'producto' : 'productos'} en tu carrito</p>
+          <div className="flex items-center gap-4">
+            <div className="text-5xl">🛒</div>
+            <div>
+              <h1 className="text-4xl font-bold text-white mb-2">Carrito de Compras</h1>
+              <p className="text-orange-300 font-bold text-lg">
+                {cart.length} {cart.length === 1 ? 'producto' : 'productos'} en tu pedido
+              </p>
+            </div>
+          </div>
         </div>
 
         {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-red-800">{error}</p>
+            <div className="mb-6 bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-600 rounded-r-xl p-5 shadow-lg">
+              <div className="flex items-start gap-3">
+                <span className="text-3xl">⚠️</span>
+                <div>
+                  <h3 className="font-bold text-red-800 mb-1">Error al Procesar</h3>
+                  <p className="text-red-700 font-medium">{error}</p>
+                </div>
+              </div>
             </div>
         )}
 
         {cart.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-md p-12 text-center">
-              <ShoppingCart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">Tu carrito está vacío</h2>
-              <p className="text-gray-600 mb-6">Agrega productos desde nuestra tienda</p>
+            <div className="bg-gradient-to-br from-slate-50 to-orange-50 rounded-2xl shadow-xl p-16 text-center border-4 border-orange-200">
+              <div className="text-8xl mb-6">🛒</div>
+              <h2 className="text-3xl font-bold text-slate-800 mb-3">Tu Carrito está Vacío</h2>
+              <p className="text-slate-600 font-medium mb-8 text-lg">Agrega materiales y equipos desde nuestro catálogo</p>
               <button
                   onClick={() => router.push('/clientes/tienda')}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className="px-8 py-4 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white rounded-lg transition-all font-bold text-lg shadow-lg hover:shadow-xl"
               >
-                Ir a la tienda
+                🏪 Ir al Catálogo
               </button>
             </div>
         ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Cart items */}
-              <div className="lg:col-span-2 space-y-4">
+              {/* Cart items Industrial */}
+              <div className="lg:col-span-2 space-y-5">
                 {cart.map((item) => (
                     <div
                         key={item.productoId}
-                        className="bg-white rounded-lg shadow-md p-6 flex items-center gap-4"
+                        className="bg-white rounded-xl shadow-lg p-6 flex items-center gap-6 border-2 border-slate-200 hover:border-orange-400 transition-all"
                     >
-                      {/* Product placeholder image */}
-                      <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <ShoppingCart className="h-8 w-8 text-blue-400" />
+                      {/* Product placeholder image Industrial */}
+                      <div className="w-24 h-24 bg-gradient-to-br from-slate-200 via-gray-200 to-orange-100 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                        <div className="text-4xl">🧱</div>
                       </div>
 
-                      {/* Product info */}
+                      {/* Product info Industrial */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1 truncate">
+                        <h3 className="text-xl font-bold text-slate-800 mb-2 truncate">
                           {item.productoNombre}
                         </h3>
-                        <p className="text-gray-600">
-                          ${item.precioUnitario.toLocaleString('es-CO')} c/u
+                        <p className="text-orange-600 font-bold text-lg">
+                          ${item.precioUnitario.toLocaleString('es-CO')} <span className="text-sm text-slate-500">c/u</span>
                         </p>
                       </div>
 
-                      {/* Quantity controls */}
-                      <div className="flex items-center space-x-2">
+                      {/* Quantity controls Industrial */}
+                      <div className="flex items-center bg-slate-100 rounded-lg p-2 gap-3 border-2 border-slate-300">
                         <button
                             onClick={() => updateQuantity(item.productoId, -1)}
-                            className="p-1 rounded-lg border border-gray-300 hover:bg-gray-50"
+                            className="p-2 rounded-lg bg-white border-2 border-slate-300 hover:bg-orange-50 hover:border-orange-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={item.cantidad === 1}
                         >
-                          <Minus className="h-4 w-4" />
+                          <Minus className="h-5 w-5 text-slate-700" />
                         </button>
-                        <span className="w-12 text-center font-medium">{item.cantidad}</span>
+                        <span className="w-16 text-center font-bold text-xl text-slate-800">{item.cantidad}</span>
                         <button
                             onClick={() => updateQuantity(item.productoId, 1)}
-                            className="p-1 rounded-lg border border-gray-300 hover:bg-gray-50"
+                            className="p-2 rounded-lg bg-white border-2 border-slate-300 hover:bg-orange-50 hover:border-orange-500 transition-all"
                         >
-                          <Plus className="h-4 w-4" />
+                          <Plus className="h-5 w-5 text-slate-700" />
                         </button>
                       </div>
 
-                      {/* Subtotal and remove */}
+                      {/* Subtotal and remove Industrial */}
                       <div className="text-right">
-                        <p className="text-lg font-bold text-gray-900 mb-2">
+                        <p className="text-2xl font-bold text-orange-600 mb-3">
                           ${(item.cantidad * item.precioUnitario).toLocaleString('es-CO')}
                         </p>
                         <button
                             onClick={() => removeItem(item.productoId)}
-                            className="text-red-600 hover:text-red-700 flex items-center justify-end"
+                            className="text-red-600 hover:text-red-700 flex items-center justify-end font-bold hover:bg-red-50 px-3 py-1 rounded-lg transition-all"
                         >
-                          <Trash2 className="h-4 w-4 mr-1" />
+                          <Trash2 className="h-5 w-5 mr-1" />
                           <span className="text-sm">Eliminar</span>
                         </button>
                       </div>
                     </div>
                 ))}
 
-                {/* Clear cart button */}
+                {/* Clear cart button Industrial */}
                 <button
                     onClick={clearCart}
-                    className="w-full py-3 border-2 border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium"
+                    className="w-full py-4 border-3 border-red-400 bg-red-50 text-red-700 rounded-xl hover:bg-red-100 transition-all font-bold text-lg shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                 >
-                  Vaciar carrito
+                  <Trash2 className="h-6 w-6" />
+                  Vaciar Carrito Completo
                 </button>
               </div>
 
-              {/* Order summary */}
+              {/* Order summary Industrial */}
               <div className="lg:col-span-1">
-                <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
-                  <h2 className="text-xl font-bold text-gray-900 mb-4">Resumen del pedido</h2>
+                <div className="bg-gradient-to-br from-white to-orange-50 rounded-xl shadow-2xl p-8 sticky top-24 border-t-4 border-orange-600">
+                  <div className="flex items-center gap-3 mb-6">
+                    <span className="text-4xl">📊</span>
+                    <h2 className="text-2xl font-bold text-slate-800">Resumen del Pedido</h2>
+                  </div>
 
-                  <div className="space-y-3 mb-6">
-                    <div className="flex justify-between text-gray-600">
-                      <span>Subtotal</span>
+                  <div className="space-y-4 mb-6 bg-white p-5 rounded-xl border-2 border-slate-200 shadow-inner">
+                    <div className="flex justify-between text-slate-700 font-semibold text-lg">
+                      <span>Subtotal:</span>
                       <span>${calculateSubtotal().toLocaleString('es-CO')}</span>
                     </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>IVA (16%)</span>
+                    <div className="flex justify-between text-slate-700 font-semibold text-lg">
+                      <span>IVA (16%):</span>
                       <span>${calculateIVA().toLocaleString('es-CO')}</span>
                     </div>
-                    <div className="border-t pt-3 flex justify-between text-xl font-bold text-gray-900">
-                      <span>Total</span>
+                    <div className="border-t-3 border-orange-300 pt-4 flex justify-between text-2xl font-bold text-orange-600">
+                      <span>TOTAL:</span>
                       <span>${calculateTotal().toLocaleString('es-CO')}</span>
                     </div>
                   </div>
 
-                  {/* Método de pago */}
+                  {/* Método de pago Industrial */}
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Método de pago
+                    <label className="block text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                      <span className="text-xl">💳</span>
+                      Método de Pago
                     </label>
                     <select
                         value={metodoPago}
                         onChange={(e) => setMetodoPago(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                        className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900 font-bold bg-white shadow-sm"
                     >
-                      <option value="Efectivo">Efectivo</option>
-                      <option value="Tarjeta">Tarjeta de crédito/débito</option>
-                      <option value="Transferencia">Transferencia bancaria</option>
+                      <option value="Efectivo">💵 Efectivo</option>
+                      <option value="Tarjeta">💳 Tarjeta de crédito/débito</option>
+                      <option value="Transferencia">🏦 Transferencia bancaria</option>
                     </select>
                   </div>
 
                   <button
                       onClick={handleCheckout}
                       disabled={loading}
-                      className="w-full flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+                      className="w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white rounded-lg transition-all disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed font-bold text-lg shadow-xl hover:shadow-2xl"
                   >
                     {loading ? (
                         <>
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                          Procesando...
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-3 border-white mr-3"></div>
+                          Procesando Compra...
                         </>
                     ) : (
                         <>
-                          <CreditCard className="h-5 w-5 mr-2" />
-                          Finalizar compra
+                          <CreditCard className="h-6 w-6 mr-3" />
+                          🚀 Finalizar Compra
                         </>
                     )}
                   </button>
 
-                  <p className="text-xs text-gray-500 text-center mt-4">
-                    Al finalizar la compra, aceptas nuestros términos y condiciones
-                  </p>
+                  <div className="mt-6 p-4 bg-gradient-to-r from-slate-700 to-slate-800 rounded-lg border-l-4 border-yellow-500">
+                    <p className="text-xs text-gray-200 text-center font-medium flex items-center justify-center gap-2">
+                      <span>🛡️</span>
+                      Al finalizar, aceptas nuestros términos y condiciones
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
