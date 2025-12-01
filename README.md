@@ -365,17 +365,16 @@ Este proyecto está bajo la Licencia MIT. Ver [LICENSE](LICENSE) para más detal
 
 ## 👥 Equipo
 
-- **Desarrollador Principal**: [Tu Nombre](https://github.com/tu-usuario)
+- **Desarrollador Principal**: [Tu Nombre](https://github.com/luixdaniel)
 - **Contribuidores**: Ver [CONTRIBUTORS.md](CONTRIBUTORS.md)
 
 ---
 
 ## 📞 Contacto y Soporte
 
-- 📧 **Email**: dev@firmeza.com
-- 💬 **Issues**: [GitHub Issues](https://github.com/tu-usuario/firmeza/issues)
-- 📖 **Wiki**: [GitHub Wiki](https://github.com/tu-usuario/firmeza/wiki)
-- 🐦 **Twitter**: [@firmeza](https://twitter.com/firmeza)
+- 📧 **Email**: ceraluis4@gmail.com
+- 💬 **Issues**: [GitHub Issues](https://github.com/luixdaniel/firmeza/issues)
+- 📖 **Wiki**: [GitHub Wiki](https://github.com/luixdaniel/firmeza/wiki)
 
 ---
 
