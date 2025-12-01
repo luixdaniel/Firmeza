@@ -365,7 +365,7 @@ Este proyecto está bajo la Licencia MIT. Ver [LICENSE](LICENSE) para más detal
 
 ## 👥 Equipo
 
-- **Desarrollador Principal**: [Tu Nombre](https://github.com/luixdaniel)
+- **Desarrollador Principal**: Luis Cera(https://github.com/luixdaniel)
 - **Contribuidores**: Ver [CONTRIBUTORS.md](CONTRIBUTORS.md)
 
 ---
