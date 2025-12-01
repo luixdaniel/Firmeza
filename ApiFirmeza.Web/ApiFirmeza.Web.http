@@ -1,0 +1,283 @@
+@ApiFirmeza.Web_HostAddress = https://localhost:5001
+@ContentType = application/json
+
+### Health Check
+GET {{ApiFirmeza.Web_HostAddress}}/health
+Accept: {{ContentType}}
+
+###
+
+### ===== CATEGORÍAS =====
+
+### Obtener todas las categorías
+GET {{ApiFirmeza.Web_HostAddress}}/api/categorias
+Accept: {{ContentType}}
+
+###
+
+### Obtener categoría por ID
+GET {{ApiFirmeza.Web_HostAddress}}/api/categorias/1
+Accept: {{ContentType}}
+
+###
+
+### Crear nueva categoría
+POST {{ApiFirmeza.Web_HostAddress}}/api/categorias
+Content-Type: {{ContentType}}
+
+{
+  "nombre": "Electrónica",
+  "descripcion": "Productos electrónicos y tecnología"
+}
+
+###
+
+### Crear categoría - Computadoras
+POST {{ApiFirmeza.Web_HostAddress}}/api/categorias
+Content-Type: {{ContentType}}
+
+{
+  "nombre": "Computadoras",
+  "descripcion": "Laptops, desktops y accesorios"
+}
+
+###
+
+### Actualizar categoría
+PUT {{ApiFirmeza.Web_HostAddress}}/api/categorias/1
+Content-Type: {{ContentType}}
+
+{
+  "nombre": "Electrónica y Tecnología",
+  "descripcion": "Todo tipo de productos electrónicos"
+}
+
+###
+
+### Eliminar categoría
+DELETE {{ApiFirmeza.Web_HostAddress}}/api/categorias/1
+
+###
+
+### ===== PRODUCTOS =====
+
+### Obtener todos los productos
+GET {{ApiFirmeza.Web_HostAddress}}/api/productos
+Accept: {{ContentType}}
+
+###
+
+### Obtener producto por ID
+GET {{ApiFirmeza.Web_HostAddress}}/api/productos/1
+Accept: {{ContentType}}
+
+###
+
+### Buscar productos
+GET {{ApiFirmeza.Web_HostAddress}}/api/productos/buscar?termino=laptop
+Accept: {{ContentType}}
+
+###
+
+### Crear nuevo producto
+POST {{ApiFirmeza.Web_HostAddress}}/api/productos
+Content-Type: {{ContentType}}
+
+{
+  "nombre": "Laptop Dell XPS 15",
+  "descripcion": "Laptop de alto rendimiento con procesador Intel i7, 16GB RAM, 512GB SSD",
+  "precio": 1299.99,
+  "stock": 10,
+  "categoriaId": 1
+}
+
+###
+
+### Crear producto - MacBook
+POST {{ApiFirmeza.Web_HostAddress}}/api/productos
+Content-Type: {{ContentType}}
+
+{
+  "nombre": "MacBook Pro 16",
+  "descripcion": "MacBook Pro con chip M3 Pro, 32GB RAM, 1TB SSD",
+  "precio": 2499.99,
+  "stock": 5,
+  "categoriaId": 1
+}
+
+###
+
+### Crear producto - Mouse
+POST {{ApiFirmeza.Web_HostAddress}}/api/productos
+Content-Type: {{ContentType}}
+
+{
+  "nombre": "Mouse Logitech MX Master 3",
+  "descripcion": "Mouse inalámbrico ergonómico profesional",
+  "precio": 99.99,
+  "stock": 50,
+  "categoriaId": 1
+}
+
+###
+
+### Actualizar producto
+PUT {{ApiFirmeza.Web_HostAddress}}/api/productos/1
+Content-Type: {{ContentType}}
+
+{
+  "nombre": "Laptop Dell XPS 15 (2024)",
+  "descripcion": "Laptop de alto rendimiento con procesador Intel i7, 32GB RAM, 1TB SSD",
+  "precio": 1499.99,
+  "stock": 8,
+  "categoriaId": 1
+}
+
+###
+
+### Eliminar producto
+DELETE {{ApiFirmeza.Web_HostAddress}}/api/productos/1
+
+###
+
+### ===== CLIENTES =====
+
+### Obtener todos los clientes
+GET {{ApiFirmeza.Web_HostAddress}}/api/clientes
+Accept: {{ContentType}}
+
+###
+
+### Obtener cliente por ID
+GET {{ApiFirmeza.Web_HostAddress}}/api/clientes/1
+Accept: {{ContentType}}
+
+###
+
+### Buscar clientes
+GET {{ApiFirmeza.Web_HostAddress}}/api/clientes/buscar?termino=juan
+Accept: {{ContentType}}
+
+###
+
+### Crear nuevo cliente
+POST {{ApiFirmeza.Web_HostAddress}}/api/clientes
+Content-Type: {{ContentType}}
+
+{
+  "nombre": "Juan",
+  "apellido": "Pérez",
+  "email": "juan.perez@email.com",
+  "telefono": "555-1234",
+  "documento": "12345678",
+  "direccion": "Calle Principal 123",
+  "ciudad": "Ciudad de México",
+  "pais": "México"
+}
+
+###
+
+### Crear cliente - María
+POST {{ApiFirmeza.Web_HostAddress}}/api/clientes
+Content-Type: {{ContentType}}
+
+{
+  "nombre": "María",
+  "apellido": "González",
+  "email": "maria.gonzalez@email.com",
+  "telefono": "555-5678",
+  "documento": "87654321",
+  "direccion": "Avenida Reforma 456",
+  "ciudad": "Guadalajara",
+  "pais": "México"
+}
+
+###
+
+### Actualizar cliente
+PUT {{ApiFirmeza.Web_HostAddress}}/api/clientes/1
+Content-Type: {{ContentType}}
+
+{
+  "nombre": "Juan Carlos",
+  "apellido": "Pérez Martínez",
+  "email": "juancarlos.perez@email.com",
+  "telefono": "555-1234",
+  "documento": "12345678",
+  "direccion": "Calle Principal 123, Piso 2",
+  "ciudad": "Ciudad de México",
+  "pais": "México",
+  "activo": true
+}
+
+###
+
+### Eliminar cliente
+DELETE {{ApiFirmeza.Web_HostAddress}}/api/clientes/1
+
+###
+
+### ===== VENTAS =====
+
+### Obtener todas las ventas
+GET {{ApiFirmeza.Web_HostAddress}}/api/ventas
+Accept: {{ContentType}}
+
+###
+
+### Obtener venta por ID
+GET {{ApiFirmeza.Web_HostAddress}}/api/ventas/1
+Accept: {{ContentType}}
+
+###
+
+### Obtener ventas de un cliente
+GET {{ApiFirmeza.Web_HostAddress}}/api/ventas/cliente/1
+Accept: {{ContentType}}
+
+###
+
+### Crear nueva venta
+POST {{ApiFirmeza.Web_HostAddress}}/api/ventas
+Content-Type: {{ContentType}}
+
+{
+  "cliente": "Juan Pérez",
+  "clienteId": 1,
+  "metodoPago": "Tarjeta",
+  "vendedor": "Admin",
+  "detalles": [
+    {
+      "productoId": 1,
+      "cantidad": 2,
+      "precioUnitario": 1299.99
+    },
+    {
+      "productoId": 3,
+      "cantidad": 1,
+      "precioUnitario": 99.99
+    }
+  ]
+}
+
+###
+
+### Crear venta - Un solo producto
+POST {{ApiFirmeza.Web_HostAddress}}/api/ventas
+Content-Type: {{ContentType}}
+
+{
+  "cliente": "María González",
+  "clienteId": 2,
+  "metodoPago": "Efectivo",
+  "vendedor": "Vendedor1",
+  "detalles": [
+    {
+      "productoId": 2,
+      "cantidad": 1,
+      "precioUnitario": 2499.99
+    }
+  ]
+}
+
+###

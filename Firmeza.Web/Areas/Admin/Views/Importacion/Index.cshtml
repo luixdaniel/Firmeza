@@ -1,0 +1,248 @@
+@{
+    ViewData["Title"] = "Importación Masiva";
+}
+
+<partial name="_Alerts" />
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="bi bi-upload"></i> Importación Masiva de Datos</h2>
+            <p class="text-muted">Importe productos, clientes y ventas desde archivos Excel</p>
+        </div>
+    </div>
+
+    <!-- Información sobre el formato -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h5><i class="bi bi-info-circle"></i> Instrucciones de Importación</h5>
+                <p>El sistema puede importar datos desnormalizados (mezclados) automáticamente. Puede incluir:</p>
+                <ul>
+                    <li><strong>Productos:</strong> Codigo, NombreProducto, Descripcion, Precio, Stock, Categoria</li>
+                    <li><strong>Clientes:</strong> NombreCliente, Apellido, Email, Telefono, Direccion, Documento</li>
+                    <li><strong>Ventas:</strong> CantidadVendida, PrecioVenta, Fecha, MetodoPago</li>
+                </ul>
+                <p class="mb-0"><strong>Nota:</strong> El sistema normalizará automáticamente los datos y los guardará en las tablas correctas.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Descargar plantillas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-download"></i> Descargar Plantillas</h5>
+                </div>
+                <div class="card-body">
+                    <p>Descargue una plantilla de Excel con los encabezados correctos:</p>
+                    <div class="btn-group" role="group">
+                        <a asp-action="DescargarPlantilla" asp-route-tipo="Completa" class="btn btn-outline-primary">
+                            <i class="bi bi-file-earmark-excel"></i> Plantilla Completa
+                        </a>
+                        <a asp-action="DescargarPlantilla" asp-route-tipo="Productos" class="btn btn-outline-success">
+                            <i class="bi bi-box"></i> Solo Productos
+                        </a>
+                        <a asp-action="DescargarPlantilla" asp-route-tipo="Clientes" class="btn btn-outline-info">
+                            <i class="bi bi-people"></i> Solo Clientes
+                        </a>
+                        <a asp-action="DescargarPlantilla" asp-route-tipo="Ventas" class="btn btn-outline-warning">
+                            <i class="bi bi-cart"></i> Solo Ventas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario de importación -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-cloud-upload"></i> Subir Archivo Excel</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="ImportarExcel" method="post" enctype="multipart/form-data" id="formImportacion">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="mb-3">
+                            <label for="archivo" class="form-label">Archivo Excel (.xlsx)</label>
+                            <input type="file" class="form-control" id="archivo" name="archivo" accept=".xlsx" required>
+                            <small class="form-text text-muted">Seleccione un archivo Excel (.xlsx) con los datos a importar</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="tipoImportacion" class="form-label">Tipo de Importación</label>
+                            <select class="form-select" id="tipoImportacion" name="tipoImportacion">
+                                <option value="Auto" selected>Automática (Detectar automáticamente)</option>
+                                <option value="Productos">Solo Productos</option>
+                                <option value="Clientes">Solo Clientes</option>
+                                <option value="Ventas">Solo Ventas</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success" id="btnImportar">
+                                <i class="bi bi-upload"></i> Importar Datos
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ejemplos de formato -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-table"></i> Ejemplos de Formato</h5>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="acordeonEjemplos">
+                        <!-- Ejemplo Productos -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingProductos">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProductos">
+                                    Ejemplo: Productos
+                                </button>
+                            </h2>
+                            <div id="collapseProductos" class="accordion-collapse collapse" data-bs-parent="#acordeonEjemplos">
+                                <div class="accordion-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Codigo</th>
+                                                    <th>NombreProducto</th>
+                                                    <th>Descripcion</th>
+                                                    <th>Precio</th>
+                                                    <th>Stock</th>
+                                                    <th>Categoria</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>PROD001</td>
+                                                    <td>Laptop Dell</td>
+                                                    <td>Laptop Dell Inspiron 15</td>
+                                                    <td>899.99</td>
+                                                    <td>10</td>
+                                                    <td>Tecnología</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>PROD002</td>
+                                                    <td>Mouse Logitech</td>
+                                                    <td>Mouse inalámbrico</td>
+                                                    <td>25.50</td>
+                                                    <td>50</td>
+                                                    <td>Accesorios</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ejemplo Clientes -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingClientes">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseClientes">
+                                    Ejemplo: Clientes
+                                </button>
+                            </h2>
+                            <div id="collapseClientes" class="accordion-collapse collapse" data-bs-parent="#acordeonEjemplos">
+                                <div class="accordion-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>NombreCliente</th>
+                                                    <th>Apellido</th>
+                                                    <th>Email</th>
+                                                    <th>Telefono</th>
+                                                    <th>Direccion</th>
+                                                    <th>Documento</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>Juan</td>
+                                                    <td>Pérez</td>
+                                                    <td>juan.perez@example.com</td>
+                                                    <td>555-1234</td>
+                                                    <td>Calle Principal 123</td>
+                                                    <td>12345678</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ejemplo Completo -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCompleto">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCompleto">
+                                    Ejemplo: Datos Mezclados (Completo)
+                                </button>
+                            </h2>
+                            <div id="collapseCompleto" class="accordion-collapse collapse" data-bs-parent="#acordeonEjemplos">
+                                <div class="accordion-body">
+                                    <p class="text-muted">Puede incluir todas las columnas en un mismo archivo y el sistema las procesará automáticamente:</p>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Codigo</th>
+                                                    <th>NombreProducto</th>
+                                                    <th>Precio</th>
+                                                    <th>Stock</th>
+                                                    <th>NombreCliente</th>
+                                                    <th>Email</th>
+                                                    <th>CantidadVendida</th>
+                                                    <th>MetodoPago</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>PROD001</td>
+                                                    <td>Laptop Dell</td>
+                                                    <td>899.99</td>
+                                                    <td>10</td>
+                                                    <td>Juan Pérez</td>
+                                                    <td>juan@example.com</td>
+                                                    <td>2</td>
+                                                    <td>Tarjeta</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('formImportacion').addEventListener('submit', function() {
+            var btn = document.getElementById('btnImportar');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Importando...';
+        });
+    </script>
+}
+

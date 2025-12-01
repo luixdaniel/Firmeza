@@ -1,0 +1,344 @@
+@model Firmeza.Web.Areas.Admin.ViewModels.CreateVentaViewModel
+@{
+    ViewData["Title"] = "Crear Venta";
+}
+
+<partial name="_Alerts" />
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2>Nueva Venta</h2>
+            <hr />
+        </div>
+    </div>
+    
+    <form asp-action="Create" method="post" id="ventaForm">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Información de la Venta</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="Cliente" class="form-label">Cliente *</label>
+                            <select asp-for="Cliente" class="form-select" id="clienteSelect" name="Cliente">
+                                <option value="">-- Seleccione un cliente --</option>
+                                @if (ViewBag.Clientes != null)
+                                {
+                                    @foreach (var cliente in (IEnumerable<Firmeza.Web.Data.Entities.Cliente>)ViewBag.Clientes)
+                                    {
+                                        <option value="@cliente.Nombre" data-email="@cliente.Email" data-documento="@cliente.Documento">
+                                            @cliente.Nombre - @cliente.Documento
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="Cliente" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                <i class="bi bi-info-circle"></i> 
+                                Solo se muestran clientes activos. Si el cliente no aparece, 
+                                <a asp-area="Admin" asp-controller="Clientes" asp-action="Create" target="_blank">regístrelo</a> o 
+                                <a asp-area="Admin" asp-controller="Clientes" asp-action="Index" target="_blank">actívelo</a> primero.
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="MetodoPago" class="form-label">Método de Pago *</label>
+                            <select asp-for="MetodoPago" class="form-select" name="MetodoPago">
+                                <option value="">-- Seleccione --</option>
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Tarjeta">Tarjeta</option>
+                                <option value="Transferencia">Transferencia</option>
+                            </select>
+                            <span asp-validation-for="MetodoPago" class="text-danger"></span>
+                        </div>
+                        
+                        <input type="hidden" asp-for="Vendedor" name="Vendedor" value="@Model.Vendedor" />
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Agregar Producto</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Producto</label>
+                            <select id="productoSelect" class="form-select">
+                                <option value="">-- Seleccione un producto --</option>
+                                @foreach (var producto in Model.ProductosDisponibles)
+                                {
+                                    <option value="@producto.Id" 
+                                            data-nombre="@producto.Nombre"
+                                            data-precio="@producto.Precio"
+                                            data-stock="@producto.Stock">
+                                        @producto.Nombre - $@producto.Precio (Stock: @producto.Stock)
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Cantidad</label>
+                            <input type="number" id="cantidadInput" class="form-control" min="1" value="1" />
+                        </div>
+                        
+                        <button type="button" class="btn btn-success" id="btnAgregarProducto">
+                            <i class="bi bi-plus-circle"></i> Agregar Producto
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Productos de la Venta</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="tablaProductos">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio Unitario</th>
+                                        <th>Subtotal</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detallesVenta">
+                                    <tr id="noProductos">
+                                        <td colspan="5" class="text-center text-muted">No hay productos agregados</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-active">
+                                        <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                                        <td colspan="2"><strong id="subtotalVenta">$0.00</strong></td>
+                                    </tr>
+                                    <tr class="table-active">
+                                        <td colspan="3" class="text-end"><strong>IVA (16%):</strong></td>
+                                        <td colspan="2"><strong id="ivaVenta">$0.00</strong></td>
+                                    </tr>
+                                    <tr class="table-success">
+                                        <td colspan="3" class="text-end"><strong>TOTAL:</strong></td>
+                                        <td colspan="2"><strong id="totalVenta">$0.00</strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-circle"></i> Guardar Venta
+                </button>
+                <a class="btn btn-secondary btn-lg" asp-action="Index">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        let detalleIndex = 0;
+        let detalles = [];
+        
+        document.getElementById('btnAgregarProducto').addEventListener('click', function() {
+            const select = document.getElementById('productoSelect');
+            const cantidad = parseInt(document.getElementById('cantidadInput').value);
+            
+            if (!select.value) {
+                alert('Seleccione un producto');
+                return;
+            }
+            
+            if (!cantidad || cantidad <= 0) {
+                alert('Ingrese una cantidad válida');
+                return;
+            }
+            
+            const option = select.options[select.selectedIndex];
+            const productoId = parseInt(select.value);
+            const nombre = option.dataset.nombre;
+            const precio = parseFloat(option.dataset.precio);
+            const stock = parseInt(option.dataset.stock);
+            
+            if (cantidad > stock) {
+                alert(`Stock insuficiente. Disponible: ${stock}`);
+                return;
+            }
+            
+            // Verificar si el producto ya fue agregado
+            const existente = detalles.find(d => d.productoId === productoId);
+            if (existente) {
+                alert('Este producto ya fue agregado. Elimínelo primero si desea cambiar la cantidad.');
+                return;
+            }
+            
+            const subtotal = cantidad * precio;
+            
+            const detalle = {
+                index: detalleIndex,
+                productoId: productoId,
+                nombre: nombre,
+                cantidad: cantidad,
+                precioUnitario: precio,
+                subtotal: subtotal,
+                stock: stock
+            };
+            
+            detalles.push(detalle);
+            agregarFilaDetalle(detalle);
+            actualizarTotales();
+            
+            // Limpiar selección
+            select.value = '';
+            document.getElementById('cantidadInput').value = '1';
+            detalleIndex++;
+        });
+        
+        function agregarFilaDetalle(detalle) {
+            document.getElementById('noProductos')?.remove();
+            
+            const tbody = document.getElementById('detallesVenta');
+            const row = tbody.insertRow();
+            row.id = `detalle_${detalle.index}`;
+            
+            row.innerHTML = `
+                <td>${detalle.nombre}</td>
+                <td>${detalle.cantidad}</td>
+                <td>$${detalle.precioUnitario.toFixed(2)}</td>
+                <td>$${detalle.subtotal.toFixed(2)}</td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="eliminarDetalle(${detalle.index})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            `;
+            
+            regenerarInputsOcultos();
+        }
+        
+        function eliminarDetalle(index) {
+            document.getElementById(`detalle_${index}`).remove();
+            detalles = detalles.filter(d => d.index !== index);
+            
+            if (detalles.length === 0) {
+                const tbody = document.getElementById('detallesVenta');
+                tbody.innerHTML = '<tr id="noProductos"><td colspan="5" class="text-center text-muted">No hay productos agregados</td></tr>';
+            }
+            
+            regenerarInputsOcultos();
+            actualizarTotales();
+        }
+        
+        function regenerarInputsOcultos() {
+            // Eliminar inputs ocultos anteriores
+            const existentes = document.querySelectorAll('input[name^="Detalles["]');
+            existentes.forEach(input => input.remove());
+            
+            // Crear inputs ocultos con índices consecutivos
+            const form = document.getElementById('ventaForm');
+            detalles.forEach((detalle, idx) => {
+                const inputProductoId = document.createElement('input');
+                inputProductoId.type = 'hidden';
+                inputProductoId.name = `Detalles[${idx}].ProductoId`;
+                inputProductoId.value = detalle.productoId;
+                form.appendChild(inputProductoId);
+                
+                const inputCantidad = document.createElement('input');
+                inputCantidad.type = 'hidden';
+                inputCantidad.name = `Detalles[${idx}].Cantidad`;
+                inputCantidad.value = detalle.cantidad;
+                form.appendChild(inputCantidad);
+                
+                const inputPrecio = document.createElement('input');
+                inputPrecio.type = 'hidden';
+                inputPrecio.name = `Detalles[${idx}].PrecioUnitario`;
+                inputPrecio.value = detalle.precioUnitario;
+                form.appendChild(inputPrecio);
+                
+                const inputSubtotal = document.createElement('input');
+                inputSubtotal.type = 'hidden';
+                inputSubtotal.name = `Detalles[${idx}].Subtotal`;
+                inputSubtotal.value = detalle.subtotal;
+                form.appendChild(inputSubtotal);
+            });
+        }
+        
+        function actualizarTotales() {
+            const subtotal = detalles.reduce((sum, d) => sum + d.subtotal, 0);
+            const iva = subtotal * 0.16;
+            const total = subtotal + iva;
+            
+            document.getElementById('subtotalVenta').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('ivaVenta').textContent = `$${iva.toFixed(2)}`;
+            document.getElementById('totalVenta').textContent = `$${total.toFixed(2)}`;
+        }
+        
+        // Validar antes de enviar
+        document.getElementById('ventaForm').addEventListener('submit', function(e) {
+            console.log('=== SUBMIT FORM ===');
+            console.log('Detalles:', detalles.length);
+            
+            if (detalles.length === 0) {
+                e.preventDefault();
+                alert('Debe agregar al menos un producto a la venta');
+                return false;
+            }
+            
+            // Regenerar inputs ocultos justo antes de enviar
+            regenerarInputsOcultos();
+            
+            // Verificar que los campos requeridos estén llenos
+            const clienteSelect = document.querySelector('select[name="Cliente"]');
+            const metodoPagoSelect = document.querySelector('select[name="MetodoPago"]');
+            const vendedorInput = document.querySelector('input[name="Vendedor"]');
+            
+            console.log('Cliente:', clienteSelect?.value);
+            console.log('MetodoPago:', metodoPagoSelect?.value);
+            console.log('Vendedor:', vendedorInput?.value);
+            
+            if (!clienteSelect || !clienteSelect.value || clienteSelect.value === '') {
+                e.preventDefault();
+                alert('Debe seleccionar un cliente de la lista');
+                clienteSelect?.focus();
+                return false;
+            }
+            
+            if (!metodoPagoSelect || !metodoPagoSelect.value || metodoPagoSelect.value === '') {
+                e.preventDefault();
+                alert('Debe seleccionar un método de pago');
+                metodoPagoSelect?.focus();
+                return false;
+            }
+            
+            // Log de todos los datos del formulario
+            const formData = new FormData(e.target);
+            console.log('FormData entries:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
+            
+            console.log('Enviando formulario...');
+            return true;
+        });
+    </script>
+}

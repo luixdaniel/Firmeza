@@ -1,0 +1,129 @@
+@model Firmeza.Web.Areas.Admin.ViewModels.CreateVentaViewModel
+@{
+    ViewData["Title"] = "Test Crear Venta (Simplificado)";
+}
+
+<div class="container mt-4">
+    <h2>Test de Creación de Venta - Versión Simplificada</h2>
+    <hr />
+    
+    <div class="alert alert-info">
+        <strong>ℹ️ Modo de Prueba</strong><br>
+        Esta es una versión simplificada del formulario para diagnosticar problemas.
+        Todos los datos se envían directamente sin JavaScript complejo.
+    </div>
+
+    <form asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+        
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>Información Básica</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Cliente *</label>
+                    <select name="Cliente" class="form-select" required>
+                        <option value="">-- Seleccione --</option>
+                        @if (ViewBag.Clientes != null)
+                        {
+                            @foreach (var cliente in (IEnumerable<Firmeza.Web.Data.Entities.Cliente>)ViewBag.Clientes)
+                            {
+                                <option value="@cliente.Nombre">@cliente.Nombre</option>
+                            }
+                        }
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Método de Pago *</label>
+                    <select name="MetodoPago" class="form-select" required>
+                        <option value="">-- Seleccione --</option>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Tarjeta">Tarjeta</option>
+                        <option value="Transferencia">Transferencia</option>
+                    </select>
+                </div>
+                
+                <input type="hidden" name="Vendedor" value="@Model.Vendedor" />
+            </div>
+        </div>
+        
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>Productos (mínimo 1)</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.ProductosDisponibles != null && Model.ProductosDisponibles.Any())
+                {
+                    @for (int i = 0; i < Math.Min(3, Model.ProductosDisponibles.Count); i++)
+                    {
+                        var producto = Model.ProductosDisponibles[i];
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <strong>@producto.Nombre</strong> - $@producto.Precio (Stock: @producto.Stock)
+                            </div>
+                            <div class="col-md-3">
+                                <input type="hidden" name="Detalles[@i].ProductoId" value="@producto.Id" />
+                                <input type="number" 
+                                       name="Detalles[@i].Cantidad" 
+                                       class="form-control" 
+                                       placeholder="Cantidad" 
+                                       min="0" 
+                                       max="@producto.Stock"
+                                       value="0" />
+                            </div>
+                            <div class="col-md-3">
+                                <input type="hidden" name="Detalles[@i].PrecioUnitario" value="@producto.Precio" />
+                                <span class="form-text">Precio: $@producto.Precio</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        No hay productos disponibles con stock.
+                    </div>
+                }
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Guardar Venta (Test)
+            </button>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Cancelar
+            </a>
+            <a asp-action="Create" class="btn btn-info">
+                <i class="bi bi-arrow-left"></i> Volver al Formulario Normal
+            </a>
+        </div>
+    </form>
+    
+    <div class="mt-4">
+        <h5>Instrucciones de Prueba:</h5>
+        <ol>
+            <li>Selecciona un cliente</li>
+            <li>Selecciona un método de pago</li>
+            <li>Ingresa cantidad para AL MENOS UN producto (mayor a 0)</li>
+            <li>Click en "Guardar Venta"</li>
+            <li>Observa la consola del servidor para ver los logs</li>
+        </ol>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        console.log('=== Formulario de Test Cargado ===');
+        document.querySelector('form').addEventListener('submit', function(e) {
+            console.log('=== Enviando formulario de test ===');
+            const formData = new FormData(this);
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
+        });
+    </script>
+}
+

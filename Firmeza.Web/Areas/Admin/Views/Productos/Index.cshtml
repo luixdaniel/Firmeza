@@ -1,0 +1,331 @@
+@model IEnumerable<Firmeza.Web.Areas.Admin.ViewModels.ProductViewModel>
+@{
+    ViewData["Title"] = "Gestión de Productos";
+    var productosActivos = Model?.Count(p => p.Activo) ?? 0;
+    var productosBajoStock = Model?.Count(p => p.Stock <= 10) ?? 0;
+    var valorInventario = Model?.Sum(p => p.Precio * p.Stock) ?? 0;
+}
+
+<partial name="_Alerts" />
+
+<!-- Header Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <h2 class="mb-1 text-primary">
+                            <i class="bi bi-box-seam-fill me-2"></i>Productos
+                        </h2>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-info-circle me-1"></i>Administra tu inventario y catálogo de productos
+                        </p>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <div class="btn-group" role="group">
+                            <a asp-area="Admin" asp-controller="Exportacion" asp-action="ExportarProductosExcel" 
+                               class="btn btn-success">
+                                <i class="bi bi-file-earmark-excel me-1"></i>Excel
+                            </a>
+                            <a asp-area="Admin" asp-controller="Exportacion" asp-action="ExportarProductosPdf" 
+                               class="btn btn-danger">
+                                <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+                            </a>
+                        </div>
+                        <a class="btn btn-primary" asp-action="Create">
+                            <i class="bi bi-plus-circle me-1"></i>Nuevo Producto
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4 g-3">
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1 small">Total Productos</p>
+                        <h4 class="mb-0 fw-bold">@(Model?.Count() ?? 0)</h4>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 p-3 rounded">
+                        <i class="bi bi-box-seam fs-4 text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1 small">Activos</p>
+                        <h4 class="mb-0 fw-bold text-success">@productosActivos</h4>
+                    </div>
+                    <div class="bg-success bg-opacity-10 p-3 rounded">
+                        <i class="bi bi-check-circle fs-4 text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1 small">Bajo Stock</p>
+                        <h4 class="mb-0 fw-bold text-warning">@productosBajoStock</h4>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 p-3 rounded">
+                        <i class="bi bi-exclamation-triangle fs-4 text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1 small">Valor Inventario</p>
+                        <h4 class="mb-0 fw-bold text-info">@valorInventario.ToString("C0")</h4>
+                    </div>
+                    <div class="bg-info bg-opacity-10 p-3 rounded">
+                        <i class="bi bi-currency-dollar fs-4 text-info"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <div class="mb-3">
+                <i class="bi bi-box display-1 text-muted"></i>
+            </div>
+            <h4 class="text-muted">No hay productos registrados</h4>
+            <p class="text-muted mb-4">Comienza agregando tu primer producto al catálogo</p>
+            <a class="btn btn-primary" asp-action="Create">
+                <i class="bi bi-plus-circle me-2"></i>Crear Primer Producto
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Table Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0">
+                        <i class="bi bi-table me-2"></i>Catálogo de Productos
+                    </h5>
+                </div>
+                <div class="col-auto">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" id="searchInput" class="form-control border-start-0" 
+                               placeholder="Buscar producto...">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="productosTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="px-4 py-3 fw-semibold">Imagen</th>
+                            <th class="px-4 py-3 fw-semibold">Producto</th>
+                            <th class="px-4 py-3 fw-semibold">Precio</th>
+                            <th class="px-4 py-3 fw-semibold text-center">Stock</th>
+                            <th class="px-4 py-3 fw-semibold">Categoría</th>
+                            <th class="px-4 py-3 fw-semibold text-center">Estado</th>
+                            <th class="px-4 py-3 fw-semibold text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var producto in Model)
+                        {
+                            <tr>
+                                <td class="px-4 py-3">
+                                    <div class="product-image-thumb">
+                                        @if (!string.IsNullOrEmpty(producto.ImagenUrl))
+                                        {
+                                            <img src="@producto.ImagenUrl" alt="@producto.Nombre" class="img-fluid rounded" />
+                                        }
+                                        else
+                                        {
+                                            <div class="placeholder-image">
+                                                <i class="bi bi-image text-muted"></i>
+                                            </div>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div>
+                                        <div class="fw-semibold text-dark">@producto.Nombre</div>
+                                        <small class="text-muted">@producto.Descripcion</small>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="fs-5 fw-bold text-success">@producto.Precio.ToString("C")</span>
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    @if (producto.Stock == 0)
+                                    {
+                                        <span class="badge rounded-pill bg-dark px-3 py-2">
+                                            <i class="bi bi-x-circle me-1"></i>Agotado
+                                        </span>
+                                    }
+                                    else if (producto.Stock <= 5)
+                                    {
+                                        <span class="badge rounded-pill bg-danger px-3 py-2">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>@producto.Stock unidades
+                                        </span>
+                                    }
+                                    else if (producto.Stock <= 10)
+                                    {
+                                        <span class="badge rounded-pill bg-warning text-dark px-3 py-2">
+                                            <i class="bi bi-exclamation-circle me-1"></i>@producto.Stock unidades
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill bg-success px-3 py-2">
+                                            <i class="bi bi-check-circle me-1"></i>@producto.Stock unidades
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="badge bg-light text-dark border">
+                                        <i class="bi bi-tag me-1"></i>@producto.CategoriaNombre
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    @if (producto.Activo)
+                                    {
+                                        <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
+                                            <i class="bi bi-check-circle-fill me-1"></i>Activo
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2">
+                                            <i class="bi bi-dash-circle-fill me-1"></i>Inactivo
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a asp-action="Details" asp-route-id="@producto.Id" 
+                                           class="btn btn-outline-info" title="Ver detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@producto.Id" 
+                                           class="btn btn-outline-warning" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@producto.Id" 
+                                           class="btn btn-outline-danger" title="Eliminar"
+                                           onclick="return confirm('¿Está seguro de eliminar este producto?')">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-white border-top py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    Mostrando @Model.Count() producto(s)
+                </small>
+                <small class="text-muted">
+                    <i class="bi bi-clock-history me-1"></i>Última actualización: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+                </small>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Search functionality
+        document.getElementById('searchInput')?.addEventListener('keyup', function() {
+            const searchValue = this.value.toLowerCase();
+            const table = document.getElementById('productosTable');
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchValue) ? '' : 'none';
+            }
+        });
+    </script>
+}
+
+<style>
+    .product-image-thumb {
+        width: 60px;
+        height: 60px;
+        overflow: hidden;
+        border-radius: 8px;
+        border: 2px solid #f0f0f0;
+    }
+    
+    .product-image-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .placeholder-image {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+    }
+    
+    .placeholder-image i {
+        font-size: 1.5rem;
+    }
+    
+    .card {
+        transition: all 0.3s ease;
+    }
+    
+    .table > tbody > tr {
+        transition: all 0.2s ease;
+    }
+    
+    .table > tbody > tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+        transform: translateX(2px);
+    }
+    
+    .badge {
+        font-weight: 500;
+        letter-spacing: 0.3px;
+    }
+</style>
+

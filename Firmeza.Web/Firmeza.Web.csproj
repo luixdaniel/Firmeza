@@ -5,7 +5,8 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <RootNamespace>Finanza.Web</RootNamespace>
+        <RootNamespace>Firmeza.Web</RootNamespace>
+        <UserSecretsId>2928f69c-df2c-4827-ac75-eacbcb2a764c</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,22 +18,33 @@
     <ItemGroup>
       <PackageReference Include="Azure.Identity" Version="1.17.0" />
       <PackageReference Include="DotNetEnv" Version="3.1.1" />
-      <PackageReference Include="EPPlus" Version="8.2.1" />
+      <PackageReference Include="EPPlus" Version="7.0.0" />
       <PackageReference Include="iTextSharp" Version="5.5.13.4" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10">
+      <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.21" />
+      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.21" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.21" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.21">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.10">
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.21" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.21" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+      <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2" />
+      <PackageReference Include="QuestPDF" Version="2025.7.4" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Data\Entities\" />
+      <_ContentIncludedByDefault Remove="Views\Producto\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Producto\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Producto\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Producto\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Producto\Index.cshtml" />
     </ItemGroup>
+
 
 </Project>

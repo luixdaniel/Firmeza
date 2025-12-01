@@ -1,150 +1,119 @@
-# .gitignore para solución .NET (ASP.NET Core) con Rider/VS y frontend opcional
-# Fuente base: VisualStudio.gitignore + añadidos prácticos
-
-##############################
-# SO / Editor
-##############################
-# macOS / Windows
-.DS_Store
-Thumbs.db
-
-# IDE y editores
-.vs/
-.idea/
-*.sln.iml
-*.DotSettings.user
-
-# VS Code (si no quieres compartir config del workspace, descomenta)
-# .vscode/
-
-##############################
-# Artefactos de build
-##############################
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
-[Tt]est[Rr]esult*/
-[Tt]est[Rr]esults/
-[Rr]elease*/
-[Dd]ebug*/
-[Bb]uild/
-[Bb]ld/
-[xX]64/
-[xX]86/
-[Ww][Ii][Nn]32/
-[Aa][Rr][Mm]64?/
-out/
-artifacts/
 
-# Publicaciones
-[Pp]ublish*/
-**/wwwroot/dist/
+# Visual Studio cache/options
+.vs/
+.vscode/
 
-##############################
-# Usuario / configuración local
-##############################
+# IDE specific files
+*.csproj.user
+*.sln.docstates
 *.suo
 *.user
 *.userosscache
-*.userprefs
-*.sln.docstates
+*.sln.iml
+.rider/
+.idea/
 
-# Lanzadores locales
-# launchSettings.json suele versionarse (útil para depuración)
-# Properties/launchSettings.json
+# Test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
 
-##############################
-# Paquetes / herramientas
-##############################
-# NuGet
+# NuGet Packages
 *.nupkg
 *.snupkg
-# Paquetes globales de dotnet/tools
-.store/
-.tools/
-# Resharper / Rider
-_ReSharper*/
-*.[Rr]e[Ss]harper
+*.nuget.props
+*.nuget.targets
 
-# NCrunch
-_NCrunch_*/
-.*crunch*.
+# Entity Framework
+# Nota: Migrations/ NO debe ser ignorado, debe estar en el repositorio
+*.edmx
+*.edmx.diagram
 
-# Cobertura / análisis
-*.coverage
-*.coveragexml
-coverage/
-.coverage/
-.nyc_output/
-.sonarqube/
+# Application Insights Telemetry
+ApplicationInsights.config
+.ApplicationInsightsConfig.json
 
-##############################
-# Node / frontend (si usas SPA o tooling)
-##############################
-node_modules/
-.packages/
-.pnp.cjs
-.pnp.loader.mjs
-.pnp.data.json
-.pnpm-store/
-# Salidas comunes
-.dist/
-dist/
-build/
-# Lockfiles suelen COMMITTEARSE; no los ignores por defecto
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
+# Local user-specific files
+appsettings.Development.json
+appsettings.local.json
+appsettings.*.local.json
 
-# LibMan: si usas libman para restaurar, puedes ignorar librerías restauradas
-# Descomenta la siguiente línea si tienes libman.json y no quieres versionar lib restauradas
-# wwwroot/lib/
-
-##############################
-# Docker / contenedores
-##############################
-# .docker/ tmp
-.docker/
-# Archivos de entorno locales
+# Environment files
 .env
-.env.*
+.env.local
+.env.*.local
 
-##############################
-# Configuración / secretos
-##############################
-# Normalmente se versionan appsettings.json y appsettings.Development.json.
-# Ignora variantes locales específicas del dev.
-appsettings.*.Local.json
-secrets.json
-user-secrets.xml
-UserSecretsId-*.json
+# OS specific
+.DS_Store
+Thumbs.db
+ehthumbs.db
 
-##############################
-# BBDD locales (SQL Server LocalDB)
-##############################
+# Node modules (if using Node.js tools)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build artifacts
+artifacts/
+publish/
+
+# User-specific files
+*.rsuser
+
+# Visual Studio Code settings
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
+*.code-workspace
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
 *.mdf
 *.ldf
-*.ndf
 
-##############################
-# Varios
-##############################
-# Archivos temporales
+# Temporary files
 *.tmp
 *.temp
-*.bak
+Temp/
+tmp/
+
+# Package manager lock files
+packages.lock.json
+
+# wwwroot artifacts (compiled assets)
+wwwroot/js/bundles/
+wwwroot/css/bundles/
+
+# Docker
+docker-compose.override.yml
+
+# Rider
+.idea/
+*.sln.iml
+.ReSharper.user
+
+# Operating system files
+.AppleDouble
+.LSOverride
 *.swp
 *.swo
+*~
+.#*
 
-# Logs
-*.log
-
-# JetBrains cache adicional
-.idea/**/shelf/
-.idea/**/workspace.xml
-.idea/**/httpRequests/
-.idea/**/dataSources/
-
-# Rider DotCover
-*.dotCover

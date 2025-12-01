@@ -1,0 +1,138 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<Firmeza.Web.Identity.ApplicationUser> SignInManager
+@inject UserManager<Firmeza.Web.Identity.ApplicationUser> UserManager
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        body { 
+            overflow-x: hidden; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, #0d6efd 0%, #0a58ca 100%);
+            color: #fff;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .sidebar a { 
+            color: #fff; 
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .sidebar .nav-link { 
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.25rem;
+            border-radius: 0.375rem;
+        }
+        .sidebar .nav-link:hover { 
+            background: rgba(255,255,255,.1);
+            transform: translateX(5px);
+        }
+        .sidebar .nav-link.active { 
+            background: rgba(255,255,255,.2); 
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .content { 
+            padding: 1.5rem; 
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        .admin-header {
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <nav class="col-12 col-md-3 col-lg-2 d-md-block sidebar p-3">
+            <div class="d-flex align-items-center mb-4">
+                <h4 class="mb-0 admin-header">📊 Admin</h4>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="Dashboard"?"active":"")" 
+                       asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                        🏠 Inicio
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="Productos"?"active":"")" 
+                       asp-area="Admin" asp-controller="Productos" asp-action="Index">
+                        📦 Productos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="Clientes"?"active":"")" 
+                       asp-area="Admin" asp-controller="Clientes" asp-action="Index">
+                        👥 Clientes
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString()=="Ventas"?"active":"")" 
+                       asp-area="Admin" asp-controller="Ventas" asp-action="Index">
+                        💰 Ventas
+                    </a>
+                </li>
+            </ul>
+            <hr class="my-3" style="border-color: rgba(255,255,255,0.3);"/>
+            <div class="mt-auto">
+                @if (SignInManager.IsSignedIn(User)) 
+                {
+                    <div class="text-white mb-2">
+                        <small>👤 @User.Identity!.Name</small>
+                    </div>
+                    <form method="post" asp-area="Identity" asp-page="/Account/Logout">
+                        <button type="submit" class="btn btn-light btn-sm w-100">
+                            🚪 Cerrar sesión
+                        </button>
+                    </form>
+                } 
+                else 
+                {
+                    <a class="btn btn-light btn-sm w-100" asp-area="Identity" asp-page="/Account/Login">
+                        🔐 Iniciar sesión
+                    </a>
+                }
+            </div>
+        </nav>
+        <main class="col-12 col-md-9 ms-sm-auto col-lg-10 content">
+            <partial name="_Alerts" />
+            @RenderBody()
+        </main>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+<script>
+    // Asegurar que los enlaces funcionen correctamente
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('✅ Admin panel loaded successfully');
+        
+        // Verificar que jQuery y Bootstrap están cargados
+        if (typeof jQuery !== 'undefined') {
+            console.log('✅ jQuery loaded');
+        } else {
+            console.error('❌ jQuery not loaded');
+        }
+        
+        if (typeof bootstrap !== 'undefined') {
+            console.log('✅ Bootstrap loaded');
+        } else {
+            console.error('❌ Bootstrap not loaded');
+        }
+    });
+</script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+

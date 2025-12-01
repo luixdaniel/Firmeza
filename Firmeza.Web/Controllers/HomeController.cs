@@ -4,7 +4,7 @@ using Firmeza.Web.Models;
 
 namespace Firmeza.Web.Controllers;
 
-public class HomeController : Controller
+public partial class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
 
