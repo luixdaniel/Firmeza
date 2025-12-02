@@ -10,11 +10,67 @@ public class TestEmailController : ControllerBase
 {
     private readonly IEmailService _emailService;
     private readonly ILogger<TestEmailController> _logger;
+    private readonly IConfiguration _configuration;
 
-    public TestEmailController(IEmailService emailService, ILogger<TestEmailController> logger)
+    public TestEmailController(IEmailService emailService, ILogger<TestEmailController> logger, IConfiguration configuration)
     {
         _emailService = emailService;
         _logger = logger;
+        _configuration = configuration;
+    }
+
+    /// <summary>
+    /// Endpoint para probar las credenciales SMTP sin enviar correo
+    /// </summary>
+    [HttpGet("test-credentials")]
+    [AllowAnonymous]
+    public async Task<IActionResult> TestCredentials()
+    {
+        try
+        {
+            var email = _configuration["EmailSettings:SenderEmail"];
+            var password = _configuration["EmailSettings:SenderPassword"];
+
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            {
+                return BadRequest(new 
+                { 
+                    success = false, 
+                    message = "Credenciales no configuradas en secrets.json",
+                    email = string.IsNullOrEmpty(email) ? "FALTA" : "OK",
+                    password = string.IsNullOrEmpty(password) ? "FALTA" : "OK"
+                });
+            }
+
+            _logger.LogInformation("🧪 Probando credenciales SMTP...");
+            var resultado = await GmailConnectionTest.TestGmailConnection(email, password);
+
+            if (resultado)
+            {
+                return Ok(new 
+                { 
+                    success = true, 
+                    message = "✅ Credenciales verificadas correctamente",
+                    email = email,
+                    passwordLength = password.Length
+                });
+            }
+            else
+            {
+                return BadRequest(new 
+                { 
+                    success = false, 
+                    message = "❌ Error de autenticación. Revisa los logs para más detalles.",
+                    email = email,
+                    passwordLength = password.Length
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al probar credenciales");
+            return StatusCode(500, new { success = false, message = ex.Message });
+        }
     }
 
     /// <summary>

@@ -99,6 +99,20 @@ packages.lock.json
 
 # wwwroot artifacts (compiled assets)
 wwwroot/js/bundles/
+
+# Scripts y archivos de prueba temporal
+test_smtp_connection.sh
+verificar_gmail.sh
+TestGmailSMTP/
+
+# Next.js (Frontend)
+.next/
+out/
+*.tsbuildinfo
+
+# Documentación temporal de diagnóstico
+DIAGNOSTICO_FINAL_GMAIL.md
+SOLUCION_GMAIL_SMTP_LINUX.md
 wwwroot/css/bundles/
 
 # Docker

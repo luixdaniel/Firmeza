@@ -31,16 +31,16 @@ public class EmailService : IEmailService
         string numeroFactura,
         byte[] pdfBytes)
     {
+        // Configuración SMTP desde appsettings (fuera del try para usar en catch)
+        var smtpHost = _configuration["EmailSettings:SmtpHost"] ?? "smtp.gmail.com";
+        var smtpPort = int.Parse(_configuration["EmailSettings:SmtpPort"] ?? "587");
+        var senderEmail = _configuration["EmailSettings:SenderEmail"];
+        var senderPassword = _configuration["EmailSettings:SenderPassword"];
+        var senderName = _configuration["EmailSettings:SenderName"] ?? "Firmeza - Tienda";
+
         try
         {
             _logger.LogInformation("📧 Iniciando envío de comprobante de compra a {Email}", destinatario);
-
-            // Configuración SMTP desde appsettings
-            var smtpHost = _configuration["EmailSettings:SmtpHost"] ?? "smtp.gmail.com";
-            var smtpPort = int.Parse(_configuration["EmailSettings:SmtpPort"] ?? "587");
-            var senderEmail = _configuration["EmailSettings:SenderEmail"];
-            var senderPassword = _configuration["EmailSettings:SenderPassword"];
-            var senderName = _configuration["EmailSettings:SenderName"] ?? "Firmeza - Tienda";
 
             _logger.LogInformation("🔧 Configuración SMTP: Host={Host}, Port={Port}, From={From}", 
                 smtpHost, smtpPort, senderEmail);
@@ -51,6 +51,15 @@ public class EmailService : IEmailService
                 _logger.LogError("   SenderEmail: {HasEmail}", string.IsNullOrEmpty(senderEmail) ? "FALTA" : "OK");
                 _logger.LogError("   SenderPassword: {HasPassword}", string.IsNullOrEmpty(senderPassword) ? "FALTA" : "OK");
                 return false;
+            }
+
+            // Log de debug para verificar la contraseña (solo primeros y últimos caracteres)
+            if (senderPassword.Length > 4)
+            {
+                _logger.LogInformation("🔑 Password loaded: {First}...{Last} (length: {Length})", 
+                    senderPassword.Substring(0, 2), 
+                    senderPassword.Substring(senderPassword.Length - 2), 
+                    senderPassword.Length);
             }
 
             // Crear el mensaje
@@ -139,9 +148,24 @@ public class EmailService : IEmailService
             // Enviar el correo usando SMTP
             using (var client = new SmtpClient())
             {
+                // Configurar para aceptar certificados SSL (útil en Linux)
+                client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+                
                 _logger.LogInformation("🔌 Conectando al servidor SMTP {Host}:{Port}...", smtpHost, smtpPort);
-                await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
-                _logger.LogInformation("✅ Conectado al servidor SMTP");
+                
+                try
+                {
+                    // Intentar con StartTls primero (recomendado para puerto 587)
+                    await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
+                    _logger.LogInformation("✅ Conectado al servidor SMTP con StartTls");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning("⚠️ Fallo con StartTls, intentando con Auto: {Error}", ex.Message);
+                    // Si falla, intentar con Auto
+                    await client.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.Auto);
+                    _logger.LogInformation("✅ Conectado al servidor SMTP con Auto");
+                }
 
                 _logger.LogInformation("🔐 Autenticando con {Email}...", senderEmail);
                 await client.AuthenticateAsync(senderEmail, senderPassword);
@@ -162,6 +186,11 @@ public class EmailService : IEmailService
         {
             _logger.LogError(authEx, "❌ Error de autenticación SMTP. Verifica el email y contraseña de aplicación.");
             _logger.LogError("   Asegúrate de usar una 'Contraseña de Aplicación' de Gmail, no la contraseña normal.");
+            _logger.LogError("   Email usado: {Email}", senderEmail);
+            _logger.LogError("   Longitud de contraseña: {Length} caracteres", senderPassword?.Length ?? 0);
+            _logger.LogError("   ⚠️ IMPORTANTE: La contraseña de aplicación NO debe tener espacios.");
+            _logger.LogError("   ⚠️ Verifica que la verificación en 2 pasos esté activada en Gmail.");
+            _logger.LogError("   ⚠️ Crea una nueva contraseña de aplicación en: https://myaccount.google.com/apppasswords");
             return false;
         }
         catch (Exception ex)

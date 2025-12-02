@@ -236,8 +236,9 @@ git clone https://github.com/tu-usuario/firmeza.git
 cd firmeza
 ```
 
-### 2. Configurar Variables de Entorno
+### 2. Configurar Variables de Entorno y Secretos
 
+#### Para Docker (Producción)
 ```bash
 # Copiar template
 cp .env.example .env
@@ -246,7 +247,24 @@ cp .env.example .env
 nano .env
 ```
 
-Ver guía completa en [DEPLOYMENT.md](DEPLOYMENT.md)
+#### Para Desarrollo Local (sin Docker)
+```bash
+cd ApiFirmeza.Web
+
+# Configurar User Secrets
+dotnet user-secrets set "EmailSettings:SmtpHost" "smtp.gmail.com"
+dotnet user-secrets set "EmailSettings:SmtpPort" "587"
+dotnet user-secrets set "EmailSettings:SenderEmail" "tu-email@gmail.com"
+dotnet user-secrets set "EmailSettings:SenderPassword" "tu_password_sin_espacios"
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "tu_connection_string"
+
+# Verificar
+dotnet user-secrets list
+```
+
+**📋 Ver guías detalladas:**
+- [ApiFirmeza.Web/SECRETS_SETUP.md](ApiFirmeza.Web/SECRETS_SETUP.md) - Configuración de secretos
+- [DEPLOYMENT.md](DEPLOYMENT.md) - Guía completa de despliegue
 
 ### 3. Iniciar con Docker
 

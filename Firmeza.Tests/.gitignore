@@ -1,0 +1,7 @@
+# NO ignorar archivos de proyecto
+!*.csproj
+
+# Solo ignorar outputs de build y paquetes
+bin/
+obj/
+
