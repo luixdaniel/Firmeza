@@ -117,6 +117,29 @@ wwwroot/css/bundles/
 
 # Docker
 docker-compose.override.yml
+.dockerignore
+
+# Test results directory
+test-results/
+*.trx
+
+# Generated receipts and documents
+recibos/
+*.pdf
+
+# Temporary scripts (pueden recrearse)
+deploy.sh
+deploy-silencioso.sh
+verificar.sh
+
+# Documentation temporal de troubleshooting (opcional, puedes comentar si quieres subirla)
+ERROR_DOCKER_COMPOSE.md
+CONFIRMACION_FINAL.md
+RESUMEN_SOLUCION.md
+INSTRUCCIONES_RAPIDAS.md
+FAQ_DOCKER.md
+INDICE_DOCUMENTACION.md
+DOCKER_DEPLOYMENT.md
 
 # Rider
 .idea/
@@ -130,4 +153,8 @@ docker-compose.override.yml
 *.swo
 *~
 .#*
+
+# JetBrains Rider
+.idea/
+*.sln.DotSettings.user
 
