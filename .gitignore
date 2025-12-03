@@ -53,7 +53,7 @@ appsettings.local.json
 appsettings.*.local.json
 
 # Environment files
-.env
+# .env - Permitido para Docker (repo privado)
 .env.local
 .env.*.local
 
