@@ -52,10 +52,6 @@ appsettings.Development.json
 appsettings.local.json
 appsettings.*.local.json
 
-# Environment files
-# .env - Permitido para Docker (repo privado)
-.env.local
-.env.*.local
 
 # OS specific
 .DS_Store

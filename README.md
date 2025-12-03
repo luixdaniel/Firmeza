@@ -223,7 +223,7 @@ Firmeza/
 - 🔒 CORS configurado
 - 🔒 Protección contra SQL Injection (EF Core)
 - 🔒 HTTPS recomendado en producción
-- 🔒 Variables sensibles en archivos .env (repositorio privado)
+- 🔒 Variables sensibles en archivos .env
 
 ---
 
@@ -245,9 +245,6 @@ cp .env.example .env
 
 # Editar con tus credenciales
 nano .env
-
-# NOTA: El archivo .env puede subirse al repositorio (es privado)
-# Ya está configurado en .gitignore para permitir su subida
 ```
 
 #### Para Desarrollo Local (sin Docker)
